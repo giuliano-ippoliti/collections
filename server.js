@@ -201,7 +201,7 @@ app.post('/api/insertCollection', (request, response) => {
 		if (duplicate == 0) {
 			newCollection.name = collectionName;
 			newCollection.properties = collectionProperties;
-			newCollection.items = {};
+			newCollection.items = [];	// empty array
 
 			console.log(newCollection);
 

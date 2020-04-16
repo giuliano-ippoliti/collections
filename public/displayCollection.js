@@ -91,10 +91,12 @@ const displayItems = function() {
 	// parse our response (from /api/getCollectionItems) to convert to JSON
 	items = JSON.parse(this.response);
 
-  	// iterate through every item and add it to our page
-  	items.forEach( (item) => {
-    		appendNewItem(item);
-  	});
+	if (Object.entries(items).length != 0) {
+	  	// iterate through every item and add it to our page
+	  	items.forEach( (item) => {
+	    		appendNewItem(item);
+	  	});
+	}
 
 	appendInsertLink();
 }
