@@ -1,0 +1,28 @@
+{
+  "name": "itemsmanage",
+  "version": "0.2.0",
+  "description": "Wepapp for managing a collection of items",
+  "main": "server.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "dotenv": "^8.2.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/giuliano-ippoliti/itemsManagement.git"
+  },
+  "author": "Giuliano Ippoliti",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/giuliano-ippoliti/itemsManagement/issues"
+  },
+  "homepage": "https://github.com/giuliano-ippoliti/itemsManagement#readme"
+}
