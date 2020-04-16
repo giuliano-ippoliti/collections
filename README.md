@@ -5,11 +5,11 @@ Not ready for prod yet.
 
 ## Localhost install
 
-git clone https://github.com/giuliano-ippoliti/itemsManagement.git
+git clone https://github.com/giuliano-ippoliti/collections.git
 
 npm install
 
-Set variables in .env file (PORT, SECRET, COLLECTION_NAME, COLLECTION_PROPERTIES) 
+Set variables in .env file (PORT, SECRET) 
 
 npm start
 
