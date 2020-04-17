@@ -15,14 +15,17 @@ const vars = getUrlVars();
 const collectionName = vars.collectionName;
 console.log(collectionName);
 
-// will be filled after calling /api/getCollectionProperties
-var properties = [];
+// Set title and header
+document.title = collectionName;
+const page_header = document.getElementById("page_header");
+page_header.innerHTML = collectionName;
 
 // form (including input text field and submit button)
 const formDiv = document.getElementById("properties");
 const itemForm = document.forms[0];
 
-//var secret = itemForm.elements['secret'];	// TODO ?!
+// will be filled after calling /api/getCollectionProperties
+var properties = [];
 
 const checkInsertedItem = function() {
 	// parse our response (from /insertItems) to convert to JSON

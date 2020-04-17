@@ -16,7 +16,11 @@ const getUrlVars = function() {
 
 const vars = getUrlVars();
 const collectionName = vars.collectionName;
-//console.log(collectionName);
+
+// Set title and header
+document.title = collectionName;
+const page_header = document.getElementById("page_header");
+page_header.innerHTML = collectionName;
 
 // a helper function that displays a new item
 const appendNewItem = (item) => {
@@ -91,12 +95,10 @@ const displayItems = function() {
 	// parse our response (from /api/getCollectionItems) to convert to JSON
 	items = JSON.parse(this.response);
 
-	if (Object.entries(items).length != 0) {
-	  	// iterate through every item and add it to our page
-	  	items.forEach( (item) => {
-	    		appendNewItem(item);
-	  	});
-	}
+  	// iterate through every item and add it to our page
+  	items.forEach( (item) => {
+    		appendNewItem(item);
+  	});
 
 	appendInsertLink();
 }

@@ -162,7 +162,7 @@ app.post('/api/insertItemInCollection', (request, response) => {
 		// look for the right collection
 		collections.forEach( (collection) => {
 			if (collection.name == collectionName) {
-				collection.items.push(newItem);		// TODO more verifications
+				collection.items.push(newItem);		// TODO more verifications (API abuse)
 				saveToDbFile();
 				response.send(JSON.stringify(newItem));
 			}
@@ -215,6 +215,6 @@ app.post('/api/insertCollection', (request, response) => {
 
 // listen for requests
 var listener = app.listen(PORT, () => {
-	console.log('Your app is listening on port ' + listener.address().port);
+	console.log('App is listening on port ' + listener.address().port);
 });
 
