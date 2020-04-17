@@ -1,5 +1,5 @@
 // server.js
-// where your node app starts
+// where the node app starts
 
 // Express web framework for Node.js: https://expressjs.com/
 // express is a function
@@ -20,70 +20,7 @@ var fs = require('fs');
 const PORT = process.env.PORT;
 const SECRET = process.env.SECRET;
 
-// array of objects (items)
-var collections = [];
-
-var dbFile = 'collections.json';
-
-// Functions
-const saveToDbFile = () => {
-	// converting to JSON for storing in db file
-	var DbDump = JSON.stringify(collections, null, '  ');
-
-	fs.writeFile(dbFile, DbDump, function(err) {
-		if (err) {
-			console.log(err);
-		}
-	});
-}
-
-// Loading items
-var exists = fs.existsSync(dbFile);
-if (exists) {
-	console.log('Database file is ready to go!');
-
-	// read db file for storage in items
-	var contents = fs.readFileSync(dbFile);
-
-	// load items to items array
-	collections = JSON.parse(contents);
-
-	//console.log('Loaded: ', collections);
-}
-
-// Web application instance
-var app = express();
-
-// Express Middlewares
-
-// parse JSON
-app.use(bodyParser.json());
-
-// http://expressjs.com/en/starter/static-files.html
-// Now we can use files in the public folder, without prefix (cf: app.use('/static', express.static('public')); )
-app.use(express.static('public'));
-
-// Static files
-
-app.get('/', (request, response) => {
-	response.sendFile(__dirname + '/views/index.html');
-});
-
-app.get('/insertCollection', (request, response) => {
-	response.sendFile(__dirname + '/views/insertCollection.html');
-});
-
-app.get('/insertItem', (request, response) => {
-	response.sendFile(__dirname + '/views/insertItem.html');
-});
-
-app.get('/displayCollection', (request, response) => {
-	response.sendFile(__dirname + '/views/displayCollection.html');
-});
-
-// API endpoints
-
-// structure:
+// structure for storing the collections:
 // - collections (array of {name:, properties:, items:})
 // [
 //   {
@@ -102,8 +39,71 @@ app.get('/displayCollection', (request, response) => {
 //       }
 //     ]
 //   },
+//   ...
+// ]
+var collections = [];
 
-// TODO rajouter /collection/<name> ?!
+// Db backend as JSON file
+var dbFile = 'collections.json';
+
+// Functions
+const saveToDbFile = () => {
+	// converting to JSON for storing in db file
+	var DbDump = JSON.stringify(collections, null, '  ');
+
+	fs.writeFile(dbFile, DbDump, function(err) {
+		if (err) {
+			console.error(err);
+		}
+	});
+}
+
+// Loading items from Db file at startup
+var exists = fs.existsSync(dbFile);
+if (exists) {
+	console.log('Database file is ready to go!');
+
+	// read db file for storage in items
+	var contents = fs.readFileSync(dbFile);
+
+	// load items to items array
+	collections = JSON.parse(contents);
+}
+
+// Web application instance
+var app = express();
+
+// Express Middleware for parsing JSON
+app.use(bodyParser.json());
+
+// http://expressjs.com/en/starter/static-files.html
+// Now we can use files in the public folder, without prefix (cf: app.use('/static', express.static('public')); )
+// The public folder contains javascript files
+app.use(express.static('public'));
+
+// *** Routes for static files (HTML) ***
+
+// home page, which displays the list of collections
+app.get('/', (request, response) => {
+	response.sendFile(__dirname + '/views/index.html');
+});
+
+// page for inserting a new collection
+app.get('/insertCollection', (request, response) => {
+	response.sendFile(__dirname + '/views/insertCollection.html');
+});
+
+// page for inserting an item into a collection
+app.get('/insertItem', (request, response) => {
+	response.sendFile(__dirname + '/views/insertItem.html');
+});
+
+// page for displaying items of a collection
+app.get('/displayCollection', (request, response) => {
+	response.sendFile(__dirname + '/views/displayCollection.html');
+});
+
+// *** Routes for API endpoints ***
 
 // called by index.html
 app.get('/api/getCollections', (request, response) => {
@@ -118,7 +118,6 @@ app.get('/api/getCollections', (request, response) => {
 });
 
 // called by insertItem.html
-// get properties
 app.post('/api/getCollectionProperties', (request, response) => {
 	// extract properties: from collections[name]
 	const collectionName = request.body.collectionName;
@@ -139,7 +138,7 @@ app.post('/api/getCollectionItems', (request, response) => {
 	// extract items: from collections[name]
 	const collectionName = request.body.collectionName;
 
-	var listOfItems = {};
+	var listOfItems = [];
 	collections.forEach( (collection) => {
 		if (collection.name == collectionName) {
 			listOfItems = collection.items;
