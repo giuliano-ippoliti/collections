@@ -19,3 +19,7 @@ Go to http://localhost:3700/ (3700 is the default port)
 
 You can now start creating collections
 
+## Try it on Heroku
+
+https://collectionsmanager.herokuapp.com
+
