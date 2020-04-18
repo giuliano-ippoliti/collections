@@ -51,10 +51,14 @@ itemForm.onsubmit = (event) => {
 	// stop our form submission from refreshing the page
 	event.preventDefault();
 	console.log("new collection submitted");
+	
+	var inputProperties = propertiesInput.value;
+	var inputPropertiesTrt = inputProperties.replace(/,\s+/g, ',');
+	var propertiesList = inputPropertiesTrt.split(',');
 
 	var apirequest = {};
 	apirequest.collectionName = nameInput.value;
-	apirequest.collectionProperties = JSON.parse(propertiesInput.value);	// TODO more user friendly
+	apirequest.collectionProperties = propertiesList;
 	apirequest.secret = secretInput.value;
 
 	console.log(apirequest);
