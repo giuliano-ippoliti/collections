@@ -79,10 +79,17 @@ const JSON2HTMLtable = (item) => {
 
 const JSON2HTMLtext = (item) => {
 	var txt = "";
+	var value;
 	for (x in item) {
 		// beware of XSS!
 		// https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet
-		txt += "<b>" + escapeHtml(x) + "</b>: " + escapeHtml(item[x]) + "<br>";
+		if (x == "id") {
+			value = item[x];
+		}
+		else {
+			value = item[x].toString();
+		}
+		txt += "<b>" + escapeHtml(x) + "</b>: " + value + "<br>";
 		//txt += "<b>" + x + "</b>: " + item[x] + "<br>";
 	}
 	txt += "<br>" ;

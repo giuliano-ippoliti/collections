@@ -24,20 +24,23 @@ const SECRET = process.env.SECRET;
 // - collections (array of {name:, properties:, items:})
 // [
 //   {
-//     "name": "collection1",
+//     "name": "collection1",		// unique
 //     "properties": [
 //       "p1", "p2", "p3"
 //     ],
 //     "items": [
 //       {
+//         "id": "1",
 //         "p1": "val1",
 //         "p2": "val2"
 //       },
 //       {
+//         "id": "2",
 //         "p1": "val3",
 //         "p2": "val4"
 //       }
-//     ]
+//     ],
+//     "lastitemid": "2",
 //   },
 //   ...
 // ]
@@ -162,6 +165,8 @@ app.post('/api/insertItemInCollection', (request, response) => {
 		// look for the right collection
 		collections.forEach( (collection) => {
 			if (collection.name == collectionName) {
+				newItem.id = collection.lastitemid + 1;
+				collection.lastitemid += 1;
 				collection.items.push(newItem);		// TODO more verifications (API abuse)
 				saveToDbFile();
 				response.send(JSON.stringify(newItem));
@@ -201,6 +206,7 @@ app.post('/api/insertCollection', (request, response) => {
 			newCollection.name = collectionName;
 			newCollection.properties = collectionProperties;
 			newCollection.items = [];	// empty array
+			newCollection.lastitemid = 0;
 
 			console.log(newCollection);
 
