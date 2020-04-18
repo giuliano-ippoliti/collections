@@ -13,6 +13,8 @@ const nameInput = itemForm.elements['name'];
 const propertiesInput = itemForm.elements['properties'];
 const secretInput = itemForm.elements['secret'];
 
+// Note: Arrow function expressions are ill suited as methods
+// const checkAuthentication = () => { ... } does not work with "this" 
 const checkAuthentication = function() {
 	// parse our response (from /api/insertCollection) to convert to JSON
 	
@@ -64,5 +66,7 @@ itemForm.onsubmit = (event) => {
 	nameInput.value = '';
 	propertiesInput.value = '';
 	secretInput.value = '';
+
+	// TODO set focus, and avoid that browser asks for remembering values
 };
 
