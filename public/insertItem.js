@@ -35,8 +35,12 @@ const checkInsertedItem = function() {
 	
 	//check status
 	if (this.status == 200) {
-		alert('Item successfully inserted');
-		// TODO load index.html
+		if (itemId == undefined) {
+			alert('Item successfully inserted');
+		}
+		else {
+			alert('Item successfully updated');
+		}
 	}
 	else {
 		alert('Invalid secret');

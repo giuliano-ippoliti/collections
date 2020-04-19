@@ -13,6 +13,8 @@ const nameInput = itemForm.elements['name'];
 const propertiesInput = itemForm.elements['properties'];
 const secretInput = itemForm.elements['secret'];
 
+const findDuplicates = arr => arr.filter((item, index) => arr.indexOf(item) != index);
+
 // Note: Arrow function expressions are ill suited as methods
 // const checkAuthentication = () => { ... } does not work with "this" 
 const checkAuthentication = function() {
@@ -55,6 +57,12 @@ itemForm.onsubmit = (event) => {
 	var inputProperties = propertiesInput.value;
 	var inputPropertiesTrt = inputProperties.replace(/,\s+/g, ',');
 	var propertiesList = inputPropertiesTrt.split(',');
+
+	var duplicatedItems = findDuplicates(propertiesList);
+	if (duplicatedItems.length > 0) {
+		alert('Duplicate properties are not allowed');
+		return;
+	}
 
 	var apirequest = {};
 	apirequest.collectionName = nameInput.value;
