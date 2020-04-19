@@ -16,11 +16,17 @@ const getUrlVars = function() {
 
 const vars = getUrlVars();
 const collectionName = vars.collectionName;
+const editMode = vars.editMode;			// if editMode is set: each item includes a link for editing
 
 // Set title and header
 document.title = collectionName;
 const page_header = document.getElementById("page_header");
-page_header.innerHTML = collectionName;
+if (editMode != "1") {
+	page_header.innerHTML = collectionName;
+}
+else {
+	page_header.innerHTML = collectionName + ' - Edit mode (click on items id to edit)';
+}
 
 // a helper function that displays a new item
 const appendNewItem = (item) => {
@@ -41,8 +47,9 @@ const appendInsertLink = () => {
 	const newDiv = document.createElement('div');
 
 	var insertLink = '<a href=/insertItem?collectionName=' + collectionName + '>Insert item</a>';
-console.log(insertLink);
-	newDiv.innerHTML = insertLink;
+	var editLink = '<a href=/displayCollection?collectionName=' + collectionName + '&editMode=1>Edit collection</a>';
+
+	newDiv.innerHTML = insertLink + '<br>' + editLink;
 
 	document.body.appendChild(newDiv);
 }
@@ -64,33 +71,22 @@ function escapeHtml(text) {
 	return text.replace(/[&<>"']/g, function(m) { return map[m]; });
 }
 
-const JSON2HTMLtable = (item) => {
-	var txt = "";
-	txt += "<table border='1'>";
-	for (x in item) {
-		// beware of XSS!
-		// https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet
-		//txt += "<tr><td>" + OWASPescape(x) + "</td><td>" + OWASPescape(item[x]) + "</td></tr>";
-		txt += "<tr><td>" + x + "</td><td>" + item[x] + "</td></tr>";
-	}
-	txt += "</table><br>" ;
-	return txt;
-}
-
 const JSON2HTMLtext = (item) => {
 	var txt = "";
 	var value;
 	for (x in item) {
 		// beware of XSS!
 		// https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet
+
 		if (x == "id") {
-			value = item[x];
+			if (editMode != "1") { continue; }
+			value = '<a href=/editItem?collectionName=' + collectionName + '&itemId=' + item[x] + '>' + item[x] + '</a>';
 		}
 		else {
-			value = item[x].toString();
+			value = escapeHtml(item[x]);
 		}
+
 		txt += "<b>" + escapeHtml(x) + "</b>: " + value + "<br>";
-		//txt += "<b>" + x + "</b>: " + item[x] + "<br>";
 	}
 	txt += "<br>" ;
 	return txt;

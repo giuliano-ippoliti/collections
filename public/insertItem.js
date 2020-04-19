@@ -75,7 +75,12 @@ const displayInfo = function() {
 	button.type = "submit";
 	button.innerHTML = "Add item";
 	itemForm.appendChild(button);
-	//<button type="submit" id="add-item">Add item</button>
+
+	// link back to displyCollection
+	const backDiv = document.createElement('div');
+	var backLink = '<a href=/displayCollection?collectionName=' + collectionName + '&editMode=0>Back</a>';
+	backDiv.innerHTML = '<br>' + backLink;
+	document.body.appendChild(backDiv);
 }
 
 GetPropertiesRequest.onload = displayInfo;
