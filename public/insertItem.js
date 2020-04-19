@@ -13,7 +13,9 @@ const getUrlVars = function() {
 
 const vars = getUrlVars();
 const collectionName = vars.collectionName;
-console.log(collectionName);
+const itemId = vars.itemId;			// if itemId is set: edit mode (changes affect the referenced item)
+
+console.log(itemId);
 
 // Set title and header
 document.title = collectionName;
@@ -46,11 +48,36 @@ const checkInsertedItem = function() {
 const GetPropertiesRequest = new XMLHttpRequest();
 const InsertRequest = new XMLHttpRequest();
 
-const displayInfo = function() {
-	// parse our response (from /getCollectionInfo) to convert to JSON
-	properties = JSON.parse(this.response);
+const addStaticElements = function() {
+	var secretlabel = document.createTextNode("Secret");
+	itemForm.appendChild(secretlabel);
+	secret = document.createElement("input");
+	secret.type = "password";
+	secret.name = "secret";
+	itemForm.appendChild(secret);
 
-	console.log(properties);
+	//create button
+	var button = document.createElement("button");
+	button.type = "submit";
+	if (itemId == undefined) {
+		button.innerHTML = "Add item";
+	}
+	else {
+		button.innerHTML = "Save changes for this item";
+	}
+	itemForm.appendChild(button);
+
+	// link back to displyCollection
+	const backDiv = document.createElement('div');
+	var backLink = '<a href=/displayCollection?collectionName=' + collectionName + '&editMode=0>Back</a>';
+	backDiv.innerHTML = '<br>' + backLink;
+	document.body.appendChild(backDiv);
+}
+
+// input values are empty (insert mode)
+const displayInfo = function() {
+	// parse our response (from /api/getCollectionInfo) to convert to JSON
+	properties = JSON.parse(this.response);
 
 	// create inputs
 	properties.forEach( (item) => {
@@ -63,38 +90,52 @@ const displayInfo = function() {
 		itemForm.appendChild(input);
 	});
 
-	var secretlabel = document.createTextNode("Secret");
-	itemForm.appendChild(secretlabel);
-	secret = document.createElement("input");
-	secret.type = "password";
-	secret.name = "secret";
-	itemForm.appendChild(secret);
-
-	//create button
-	var button = document.createElement("button");
-	button.type = "submit";
-	button.innerHTML = "Add item";
-	itemForm.appendChild(button);
-
-	// link back to displyCollection
-	const backDiv = document.createElement('div');
-	var backLink = '<a href=/displayCollection?collectionName=' + collectionName + '&editMode=0>Back</a>';
-	backDiv.innerHTML = '<br>' + backLink;
-	document.body.appendChild(backDiv);
+	addStaticElements();
 }
 
-GetPropertiesRequest.onload = displayInfo;
+// input values are filled with item's value (edit mode)
+const displayItemInfo = function() {
+	// parse our response (from /api/getCollectionSpecificItem) to convert to JSON
+	var specificItem = JSON.parse(this.response);
+	for (prop in specificItem) {
+		if (prop == "id") { continue; };
+		properties.push(prop);				// useful to fill the properties array (cf itemForm.onsubmit)
 
-var getPropertiesApi = {};
-getPropertiesApi.collectionName = collectionName;
+		var label = document.createTextNode(prop);
+		itemForm.appendChild(label);
 
-// Get properties for the collection
+		var input = document.createElement("input");
+		input.type = "text";
+		input.name = prop;
+		input.value = specificItem[prop];
+		itemForm.appendChild(input);
+	}
 
-GetPropertiesRequest.open('post', '/api/getCollectionProperties');
+	addStaticElements();
+}
 
-GetPropertiesRequest.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+var getApi = {};
+getApi.collectionName = collectionName;
 
-GetPropertiesRequest.send(JSON.stringify(getPropertiesApi));
+if (itemId == undefined) {				// new item
+	GetPropertiesRequest.onload = displayInfo;
+
+	// Get properties for the collection
+	GetPropertiesRequest.open('post', '/api/getCollectionProperties');
+	GetPropertiesRequest.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+	GetPropertiesRequest.send(JSON.stringify(getApi));
+}
+else {							// edit item
+	getApi.itemId = itemId;
+
+	GetPropertiesRequest.onload = displayItemInfo;
+
+	// Get specific items in the collection for editing
+	GetPropertiesRequest.open('post', '/api/getCollectionSpecificItem');
+	GetPropertiesRequest.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+
+	GetPropertiesRequest.send(JSON.stringify(getApi));
+}
 
 InsertRequest.onload = checkInsertedItem;
 
@@ -112,13 +153,19 @@ const insertItem = (apirequest) => {
 itemForm.onsubmit = function(event) {
 	// stop our form submission from refreshing the page
 	event.preventDefault();
-	console.log("new item submitted");
+
+	console.log("request submitted");
+
 	// get item value and add it to the list
 	var item1 = {};
 
 	properties.forEach( (item) => {
 		item1[item] = itemForm.elements[item].value;
 	});
+
+	if (itemId != undefined) {		// add itemId to the request
+		item1["itemId"] = itemId;
+	}
 
 	var apisecret = secret.value;
 

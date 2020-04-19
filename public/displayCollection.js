@@ -80,7 +80,7 @@ const JSON2HTMLtext = (item) => {
 
 		if (x == "id") {
 			if (editMode != "1") { continue; }
-			value = '<a href=/editItem?collectionName=' + collectionName + '&itemId=' + item[x] + '>' + item[x] + '</a>';
+			value = '<a href=/insertItem?collectionName=' + collectionName + '&itemId=' + item[x] + '>' + item[x] + '</a>';
 		}
 		else {
 			value = escapeHtml(item[x]);

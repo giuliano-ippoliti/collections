@@ -152,10 +152,32 @@ app.post('/api/getCollectionItems', (request, response) => {
 });
 
 // called by insertItem.html
+app.post('/api/getCollectionSpecificItem', (request, response) => {
+	const collectionName = request.body.collectionName;
+	const itemId = request.body.itemId;
+
+	var specificItem = {};
+	// look for matching collection (name) and item (id)
+	collections.forEach( (collection) => {
+		if (collection.name == collectionName) {
+			collection.items.forEach ( (collItem) => {
+				if (collItem.id == itemId) {
+					specificItem = collItem;
+				}
+			});
+		}
+	});
+
+	response.send(JSON.stringify(specificItem));
+});
+
+// called by insertItem.html
 app.post('/api/insertItemInCollection', (request, response) => {
 	const collectionName = request.body.collectionName;
 	const newItem = request.body.item;
 	const apisecret = request.body.secret;
+
+	const itemId = newItem.itemId;		// only set for editing an item
 
 	console.log('/api/insertItemInCollection', newItem);
 
@@ -165,11 +187,27 @@ app.post('/api/insertItemInCollection', (request, response) => {
 		// look for the right collection
 		collections.forEach( (collection) => {
 			if (collection.name == collectionName) {
-				newItem.id = collection.lastitemid + 1;
-				collection.lastitemid += 1;
-				collection.items.push(newItem);		// TODO more verifications (API abuse)
-				saveToDbFile();
-				response.send(JSON.stringify(newItem));
+				if (itemId == undefined) {			// insert new item
+					newItem.id = collection.lastitemid + 1;
+					collection.lastitemid += 1;
+					collection.items.push(newItem);		// TODO more verifications (API abuse)
+					saveToDbFile();
+					response.send(JSON.stringify(newItem));
+				}
+				else {						// modify existing item
+					// look for the specific item
+					collection.items.forEach ( (collItem) => {
+						if (collItem.id == itemId) {
+							// specific item found, loop through properties (expected for id)
+							for (prop in collItem) {
+								if (prop == "id") { continue; };	// do not touch the "id" property
+								collItem[prop] = newItem[prop];
+							}
+						}
+					});
+					saveToDbFile();
+					response.send(JSON.stringify(newItem));
+				}
 			}
 		});
 	}
