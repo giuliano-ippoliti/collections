@@ -54,13 +54,28 @@ itemForm.onsubmit = (event) => {
 	event.preventDefault();
 	console.log("new collection submitted");
 	
-	var inputProperties = propertiesInput.value;
-	var inputPropertiesTrt = inputProperties.replace(/,\s+/g, ',');
+	// check collection properties
+	var inputProperties = propertiesInput.value;			// TODO forbid special caracters, and final,
+	var inputPropertiesTrt = inputProperties.replace(/,\s+/g, ',');	// remove spaces after commas
+	inputPropertiesTrt = inputPropertiesTrt.replace(/,+/g, ',');	// deduplicate multiple commas
+	inputPropertiesTrt = inputPropertiesTrt.replace(/,+$/, '');	// remove trailing comma
+
+	if (!inputPropertiesTrt.match(/^[0-9A-Za-z,]+$/)) {
+		alert('Only letters and numbers are allowed for properties');
+		return;
+	}
+
 	var propertiesList = inputPropertiesTrt.split(',');
 
 	var duplicatedItems = findDuplicates(propertiesList);
 	if (duplicatedItems.length > 0) {
 		alert('Duplicate properties are not allowed');
+		return;
+	}
+
+	// check collection name
+	if (!nameInput.value.match(/^[0-9A-Za-z]+$/)) {
+		alert('Only letters and numbers are allowed for the collection\'s name');
 		return;
 	}
 
