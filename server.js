@@ -5,9 +5,11 @@
 // express is a function
 var express = require('express');
 
-// Node.js body parsing middleware.
-// Parse incoming request bodies in a middleware before your handlers, available under the req.body property
-var bodyParser = require('body-parser');
+// Web application instance
+var app = express();
+
+// Express Middleware for parsing JSON
+app.use(express.json());
 
 // Read environment varibale in .env (PORT, ...)
 const dotenv = require('dotenv');
@@ -72,12 +74,6 @@ if (exists) {
 	// load items to items array
 	collections = JSON.parse(contents);
 }
-
-// Web application instance
-var app = express();
-
-// Express Middleware for parsing JSON
-app.use(bodyParser.json());
 
 // http://expressjs.com/en/starter/static-files.html
 // Now we can use files in the public folder, without prefix (cf: app.use('/static', express.static('public')); )
