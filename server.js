@@ -1,9 +1,17 @@
 // server.js
 // where the node app starts
+// TODO: lock dependencies
+// TODO: dependences au debut du fichier
+// TODO: Helmet
+
 
 // Express web framework for Node.js: https://expressjs.com/
 // express is a function
 var express = require('express');
+
+// DB as JSON file
+var fsExtra = require('fs-extra');
+var fs = require('fs');
 
 // Web application instance
 var app = express();
@@ -14,9 +22,6 @@ app.use(express.json());
 // Read environment varibale in .env (PORT, ...)
 const dotenv = require('dotenv');
 dotenv.config();
-
-// DB as JSON file
-var fs = require('fs');
 
 // From .env file
 const PORT = process.env.PORT;
@@ -52,10 +57,20 @@ var collections = [];
 var dbFile = 'collections.json';
 
 // Functions
-const saveToDbFile = () => {
+const saveToDbFile = async () => {
 	// converting to JSON for storing in db file
 	var DbDump = JSON.stringify(collections, null, '  ');
 
+	// await fsExtra.writeJson(dbFile)
+	// TODO: try catch
+	// new Promise((resolve, reject) => {
+	// 	fs.writeFile(dbFile, DbDump, function(err) {
+	// 		if (err) {
+	// 			console.error(err);
+	// 			reject(err)
+	// 		}
+	// 	});
+	// });
 	fs.writeFile(dbFile, DbDump, function(err) {
 		if (err) {
 			console.error(err);
@@ -64,11 +79,14 @@ const saveToDbFile = () => {
 }
 
 // Loading items from Db file at startup
+// TODO: Try catch
 var exists = fs.existsSync(dbFile);
 if (exists) {
 	console.log('Database file is ready to go!');
 
 	// read db file for storage in items
+	// TODO: Try catch
+	// TODO: async ?
 	var contents = fs.readFileSync(dbFile);
 
 	// load items to items array
@@ -81,6 +99,8 @@ if (exists) {
 app.use(express.static('public'));
 
 // *** Routes for static files (HTML) ***
+
+//
 
 // home page, which displays the list of collections
 app.get('/', (request, response) => {
@@ -113,6 +133,11 @@ app.get('/api/getCollections', (request, response) => {
 		listOfCollections.push(collection.name);
 	});
 
+	// TODO: json ?
+	// if (err) {
+	// 	return response.status(400).json({ test: 'toto'})
+	// }
+
 	response.send(JSON.stringify(listOfCollections));
 });
 
@@ -139,6 +164,7 @@ app.post('/api/getCollectionItems', (request, response) => {
 
 	var listOfItems = [];
 	collections.forEach( (collection) => {
+		// TODO: strict comparaison with ===
 		if (collection.name == collectionName) {
 			listOfItems = collection.items;
 		}
@@ -187,6 +213,7 @@ app.post('/api/insertItemInCollection', (request, response) => {
 					newItem.id = collection.lastitemid + 1;
 					collection.lastitemid += 1;
 					collection.items.push(newItem);		// TODO more verifications (API abuse)
+					// TODO: Save file before sending the response ? If so then async
 					saveToDbFile();
 					response.send(JSON.stringify(newItem));
 				}
@@ -250,7 +277,7 @@ app.post('/api/insertCollection', (request, response) => {
 
 		response.send(JSON.stringify(newCollection));
 	}
-	
+
 });
 
 // listen for requests
