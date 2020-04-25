@@ -1,0 +1,32 @@
+### TypeScript ###
+dist/
+
+### Node ###
+node_modules
+build
+npm-debug.log*
+.env
+*.env
+yarn-error.log
+
+### IDE ###
+.idea/
+.vscode/
+jsconfig.json
+
+### Misc ###
+*-local.js
+*-local.properties
+*-local.json
+*.key
+volumes/
+
+### OS generated files ####
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
