@@ -1,0 +1,23 @@
+extends layout
+
+block content
+  h1= collection.name
+  br
+  h5 Insert item:
+  
+  form(method='POST',action='/add/'+collection.name)
+    each prop in collection.properties
+      li #{prop}:
+      input.form-control(name=prop, type='text')
+      br
+
+    li Secret:
+    input.form-control(name='secret', type='password')
+    br
+    input.btn.btn-primary(type='submit',value='Add item')
+
+  br
+  br
+  a(href="/show/"+collection.name) Back
+  br
+  br

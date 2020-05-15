@@ -4,23 +4,47 @@
 // TODO: dependences au debut du fichier
 // TODO: Helmet
 
-
-// Express web framework for Node.js: https://expressjs.com/
-// express is a function
-var express = require('express');
-
-// DB as JSON file
 var fsExtra = require('fs-extra');
 var fs = require('fs');
+const path = require('path');
+const dotenv = require('dotenv');
+var express = require('express');
+const bodyParser = require('body-parser');
+const flash = require('connect-flash');
+const session = require('express-session');
+const { check, validationResult } = require('express-validator');
 
-// Web application instance
 var app = express();
 
-// Express Middleware for parsing JSON
-app.use(express.json());
+// Middleware
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }));
+
+// parse application/json
+app.use(bodyParser.json());
+
+// session middleware
+app.use(session({
+  secret: 'keyboard cat',
+  resave: true,
+  saveUninitialized: true
+}));
+
+//messages middleware
+app.use(require('connect-flash')());
+app.use(function (req, res, next) {
+  res.locals.messages = require('express-messages')(req, res);
+  next();
+});
+
+// set public folder
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Load view engine
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'pug');
 
 // Read environment varibale in .env (PORT, ...)
-const dotenv = require('dotenv');
 dotenv.config();
 
 // From .env file
@@ -93,18 +117,19 @@ if (exists) {
 	collections = JSON.parse(contents);
 }
 
-// http://expressjs.com/en/starter/static-files.html
-// Now we can use files in the public folder, without prefix (cf: app.use('/static', express.static('public')); )
-// The public folder contains javascript files
-app.use(express.static('public'));
+
 
 // *** Routes for static files (HTML) ***
 
 //
 
 // home page, which displays the list of collections
-app.get('/', (request, response) => {
-	response.sendFile(__dirname + '/views/index.html');
+
+// Home route
+app.get('/', (req, res) => {
+	res.render('index', {
+		collections: collections
+	});
 });
 
 // page for inserting a new collection
@@ -117,9 +142,97 @@ app.get('/insertItem', (request, response) => {
 	response.sendFile(__dirname + '/views/insertItem.html');
 });
 
+app.get('/add/:name', (request, response) => {
+	collections.forEach( (collection) => {
+		if (collection.name == request.params.name) {
+			response.render('add', {
+				collection: collection
+			});
+		}
+	});
+});
+
+app.post('/add/:name', [
+	check('*').isLength({min:1}).withMessage('Value required'),
+	], (request, response) => {
+	console.log(request.params.name, request.body);
+
+	const collectionName = request.params.name;
+
+	let thisCollection = {};
+	collections.forEach( (collection) => {
+		if (collection.name == collectionName) {
+			thisCollection = collection;
+		}
+	});
+
+	// collection not found
+	if (Object.keys(thisCollection).length === 0) {
+		response.status(404).send('Not found');
+	}
+	// TODO test
+
+	const errors = validationResult(request);
+
+	if (!errors.isEmpty()) {
+		response.render('add', {
+			collection: thisCollection,
+			errors: errors.mapped()
+		});
+	}
+	else {
+		// check secret
+		if (request.body.secret != SECRET) {
+			response.render('add', {
+				collection: thisCollection,
+				errors: {
+					secret: {
+						msg: 'Invalid secret'
+					}
+				}	// LAST
+			});
+		}
+		else {
+			console.log('API key is ok, authentication succeded');
+			let newItem = {};
+
+			for (let [key, value] of Object.entries(request.body)) {
+				if (key != 'secret') {
+					newItem[key] = value;
+					//console.log(`${key}: ${value}`);
+				}
+			}
+			console.log(newItem);
+
+			// look for the right collection
+			/* collections.forEach( (collection) => {
+				if (collection.name == collectionName) {
+					newItem.id = collection.lastitemid + 1;
+					collection.lastitemid += 1;
+					collection.items.push(newItem);		// TODO more verifications (API abuse)
+					// TODO: Save file before sending the response ? If so then async
+					saveToDbFile();
+				}
+			}); */
+		}
+	}
+  
+});
+
 // page for displaying items of a collection
 app.get('/displayCollection', (request, response) => {
 	response.sendFile(__dirname + '/views/displayCollection.html');
+});
+
+app.get('/show/:name', (request, response) => {
+	collections.forEach( (collection) => {
+		if (collection.name == request.params.name) {
+			//console.log(collection);
+			response.render('collection', {
+				collection: collection
+			});
+		}
+	});
 });
 
 // *** Routes for API endpoints ***

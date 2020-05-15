@@ -1,0 +1,19 @@
+extends layout
+
+block content
+  h1= collection.name
+  br
+  h5 Items list
+  
+  each item in collection.items
+    each key in Object.keys(item)
+        li #{key}: #{item[key]}
+    br
+
+  a(href="/add/"+collection.name) Add item
+  br
+  a(href="/edit/"+collection.name) Edit collection
+  br
+  a(href="/") Home
+  br
+  br

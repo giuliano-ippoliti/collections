@@ -1,0 +1,43 @@
+[
+  {
+    "name": "c1",
+    "properties": [
+      "a",
+      "b",
+      "c",
+      "d"
+    ],
+    "items": [
+      {
+        "a": "sdfAAA",
+        "b": "fsdfsdAAAAA",
+        "c": "fsdfsdAAA",
+        "d": "fsdsfdAAA",
+        "id": 1
+      },
+      {
+        "a": "zed",
+        "b": "zerezezr",
+        "c": "rezrze",
+        "d": "rezreezr",
+        "id": 2
+      }
+    ],
+    "lastitemid": 2
+  },
+  {
+    "name": "c2",
+    "properties": [
+      "b",
+      "n"
+    ],
+    "items": [
+      {
+        "b": "fsdfsd",
+        "n": "fsfsd",
+        "id": 1
+      }
+    ],
+    "lastitemid": 1
+  }
+]

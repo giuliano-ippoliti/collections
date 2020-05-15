@@ -9,8 +9,6 @@ Install Node.js
 
 `git clone https://github.com/giuliano-ippoliti/collections.git`
 
-`cd collections`
-
 `npm install`
 
 Set variables in .env file (PORT, SECRET) 
