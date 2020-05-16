@@ -186,10 +186,85 @@ app.get('/edit/:name', (request, response) => {
 	});
 });
 
+app.post('/modify/:name/:id', [
+	check('*').isLength({min:1}).withMessage('Value required'),
+	], (request, response) => {
+
+	const collectionName = request.params.name;
+	const itemId = request.params.id;
+	const newItem = request.body;
+
+	let thisCollection = {};
+	let thisItem = {};
+
+	// prevent API abuse : check existence of collection and item
+	// TODO on peut mieux faire
+	collections.forEach( (collection) => {
+		if (collection.name == collectionName) {
+			thisCollection = collection;
+			collection.items.forEach ( (collItem) => {
+				if (collItem.id == itemId) {
+					thisItem = collItem;
+				}
+			});
+		}
+	});
+	if ((Object.keys(thisCollection).length === 0) || (Object.keys(thisItem).length === 0))  {
+		response.status(404).send('Not found');
+	}
+
+	const errors = validationResult(request);
+
+	if (!errors.isEmpty()) {
+		response.render('editItem', {
+			collection: thisCollection,
+			item: thisItem,
+			errors: errors.mapped()
+		});
+	}
+	else {
+		// check secret
+		if (request.body.secret != SECRET) {
+			response.render('editItem', {
+				collection: thisCollection,
+				item: thisItem,
+				errors: {
+					secret: {
+						msg: 'Invalid secret'
+					}
+				}
+			});
+		}
+		else {
+			console.log('API key is ok, authentication succeded');
+
+			// look for the specific item
+			collections.forEach( (collection) => {
+				if (collection.name == collectionName) {
+					collection.items.forEach ( (collItem) => {
+						if (collItem.id == itemId) {
+							// specific item found, loop through properties (expected for id)
+							for (prop in collItem) {
+								if (prop == "id") { continue; };	// do not touch the "id" property
+								collItem[prop] = newItem[prop];
+							}
+
+							saveToDbFile();
+							response.render('collection', {
+								collection: collection
+							});
+						}
+					});
+				}
+			});
+		}
+	}
+});
+
 app.post('/add/:name', [
 	check('*').isLength({min:1}).withMessage('Value required'),
 	], (request, response) => {
-	console.log(request.params.name, request.body);
+	//console.log(request.params.name, request.body);
 
 	const collectionName = request.params.name;
 

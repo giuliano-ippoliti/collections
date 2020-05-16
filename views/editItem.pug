@@ -5,19 +5,18 @@ block content
   br
   h5 Edit item:
   
-  form(method='POST',action='/add/'+collection.name)
-    each prop in collection.properties
-      li #{prop}:
-      input.form-control(name=prop, type='text')
-      br
-
+  form(method='POST',action="/modify/"+collection.name+"/"+item.id)
+    each key in Object.keys(item)
+      if key !== 'id'
+        li #{key}:
+          input.form-control(name=key, type='text', value=item[key])
     li Secret:
     input.form-control(name='secret', type='password')
     br
-    input.btn.btn-primary(type='submit',value='Add item')
+    input.btn.btn-primary(type='submit',value='Save changes')
 
   br
   br
-  a(href="/show/"+collection.name) Back
+  a(href="/edit/"+collection.name) Back
   br
   br
