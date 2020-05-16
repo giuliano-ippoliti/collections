@@ -81,7 +81,8 @@ var collections = [];
 var dbFile = 'collections.json';
 
 // Functions
-const saveToDbFile = async () => {
+// TODO add async
+const saveToDbFile = () => {
 	// converting to JSON for storing in db file
 	var DbDump = JSON.stringify(collections, null, '  ');
 
@@ -145,8 +146,41 @@ app.get('/insertItem', (request, response) => {
 app.get('/add/:name', (request, response) => {
 	collections.forEach( (collection) => {
 		if (collection.name == request.params.name) {
-			response.render('add', {
+			response.render('addItem', {
 				collection: collection
+			});
+		}
+	});
+});
+
+app.get('/modify/:name/:id', (request, response) => {
+	const collectionName = request.params.name;
+	const itemId = request.params.id;
+
+	var specificItem = {};
+	collections.forEach( (collection) => {
+		if (collection.name == collectionName) {
+			collection.items.forEach ( (collItem) => {
+				if (collItem.id == itemId) {
+					specificItem = collItem;
+				}
+			});
+
+			console.log(specificItem);
+			response.render('editItem', {
+				collection: collection,
+				item: specificItem
+			});
+		}
+	});
+});
+
+app.get('/edit/:name', (request, response) => {
+	collections.forEach( (collection) => {
+		if (collection.name == request.params.name) {
+			response.render('collection', {
+				collection: collection,
+				editMode: 1
 			});
 		}
 	});
@@ -175,7 +209,7 @@ app.post('/add/:name', [
 	const errors = validationResult(request);
 
 	if (!errors.isEmpty()) {
-		response.render('add', {
+		response.render('addItem', {
 			collection: thisCollection,
 			errors: errors.mapped()
 		});
@@ -183,13 +217,13 @@ app.post('/add/:name', [
 	else {
 		// check secret
 		if (request.body.secret != SECRET) {
-			response.render('add', {
+			response.render('addItem', {
 				collection: thisCollection,
 				errors: {
 					secret: {
 						msg: 'Invalid secret'
 					}
-				}	// LAST
+				}
 			});
 		}
 		else {
@@ -199,21 +233,24 @@ app.post('/add/:name', [
 			for (let [key, value] of Object.entries(request.body)) {
 				if (key != 'secret') {
 					newItem[key] = value;
-					//console.log(`${key}: ${value}`);
 				}
 			}
 			console.log(newItem);
 
 			// look for the right collection
-			/* collections.forEach( (collection) => {
+			collections.forEach( (collection) => {
 				if (collection.name == collectionName) {
 					newItem.id = collection.lastitemid + 1;
 					collection.lastitemid += 1;
 					collection.items.push(newItem);		// TODO more verifications (API abuse)
 					// TODO: Save file before sending the response ? If so then async
 					saveToDbFile();
+
+					response.render('collection', {
+						collection: collection
+					});
 				}
-			}); */
+			});
 		}
 	}
   
@@ -229,7 +266,8 @@ app.get('/show/:name', (request, response) => {
 		if (collection.name == request.params.name) {
 			//console.log(collection);
 			response.render('collection', {
-				collection: collection
+				collection: collection,
+				editMode: 0
 			});
 		}
 	});

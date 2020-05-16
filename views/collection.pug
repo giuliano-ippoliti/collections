@@ -2,11 +2,18 @@ extends layout
 
 block content
   h1= collection.name
+  if editMode
+    h2 Edit mode (click on items id to edit)
   br
   h5 Items list
   
   each item in collection.items
     each key in Object.keys(item)
+      if key === 'id'
+        if editMode
+          li
+            #{key}: a(href="/modify/"+collection.name+"/"+item[key]) #{item[key]}
+      else
         li #{key}: #{item[key]}
     br
 
