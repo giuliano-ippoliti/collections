@@ -1,0 +1,22 @@
+extends layout
+
+block content
+  h1= title
+  br
+  h5 Collection specification:
+  
+  form(method='POST',action='/new')
+    li Name:
+    input.form-control(name='name', type='text')
+    li Properties (comma-separated list):
+    input.form-control(name='properties', type='text')
+    li Secret:
+    input.form-control(name='secret', type='password')
+    br
+    input.btn.btn-primary(type='submit',value='Add collection')
+
+  br
+  br
+  a(href="/") Home
+  br
+  br

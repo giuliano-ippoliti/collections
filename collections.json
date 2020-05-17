@@ -9,10 +9,10 @@
     ],
     "items": [
       {
-        "a": "UNO!!!",
-        "b": "DUE",
-        "c": "TRE",
-        "d": "QUATTRO",
+        "a": "sdfAAA",
+        "b": "fsdfsdAAAAA",
+        "c": "fsdfsdAAA",
+        "d": "fsdsfdAAA",
         "id": 1
       },
       {
@@ -23,28 +23,14 @@
         "id": 2
       },
       {
-        "a": "11",
-        "b": "22",
-        "c": "33",
-        "d": "44",
+        "a": "fdfds",
+        "b": "tretre",
+        "c": "lkjljk",
+        "d": "dsfsd",
         "id": 3
-      },
-      {
-        "a": "fdfdsfsd",
-        "b": "dsfdsf",
-        "c": "erezrze",
-        "d": "dfzfdsfsd",
-        "id": 4
-      },
-      {
-        "a": "AAA",
-        "b": "BBBB",
-        "c": "CCCCC",
-        "d": "DDDDDDD",
-        "id": 5
       }
     ],
-    "lastitemid": 5
+    "lastitemid": 3
   },
   {
     "name": "c2",
@@ -57,13 +43,25 @@
         "b": "fsdfsd",
         "n": "fsfsd",
         "id": 1
-      },
-      {
-        "b": "fdfdsfsd",
-        "n": "fdsfdsfsdfdsfdsfs",
-        "id": 2
       }
     ],
-    "lastitemid": 2
+    "lastitemid": 1
+  },
+  {
+    "name": "c3",
+    "properties": [
+      "a",
+      "b",
+      "c"
+    ],
+    "items": [
+      {
+        "a": "ffdfzeezezez",
+        "b": "fsdfsf",
+        "c": "fdsfdsfsd",
+        "id": 1
+      }
+    ],
+    "lastitemid": 1
   }
 ]

@@ -14,6 +14,8 @@ const flash = require('connect-flash');
 const session = require('express-session');
 const { check, validationResult } = require('express-validator');
 
+const findDuplicates = arr => arr.filter((item, index) => arr.indexOf(item) != index);
+
 var app = express();
 
 // Middleware
@@ -118,29 +120,18 @@ if (exists) {
 	collections = JSON.parse(contents);
 }
 
-
-
-// *** Routes for static files (HTML) ***
-
-//
-
-// home page, which displays the list of collections
-
 // Home route
-app.get('/', (req, res) => {
-	res.render('index', {
+app.get('/', (request, response) => {
+	response.render('index', {
 		collections: collections
 	});
 });
 
-// page for inserting a new collection
-app.get('/insertCollection', (request, response) => {
-	response.sendFile(__dirname + '/views/insertCollection.html');
-});
-
-// page for inserting an item into a collection
-app.get('/insertItem', (request, response) => {
-	response.sendFile(__dirname + '/views/insertItem.html');
+// LAST
+app.get('/new', (request, response) => {
+	response.render('new', {
+		title: 'Insert new collection'
+	});
 });
 
 app.get('/add/:name', (request, response) => {
@@ -261,6 +252,105 @@ app.post('/modify/:name/:id', [
 	}
 });
 
+app.post('/new', [
+	check('*').isLength({min:1}).withMessage('Value required'),
+	], (request, response) => {
+
+	const collectionName = request.body.name;
+	const secret = request.body.secret;
+	var inputProperties = request.body.properties;			// TODO forbid special caracters, and final,
+	
+	// Process properties
+	var collectionProperties = inputProperties.replace(/,\s+/g, ',');	// remove spaces after commas
+	collectionProperties = collectionProperties.replace(/,+/g, ',');	// deduplicate multiple commas
+	collectionProperties = collectionProperties.replace(/,+$/, '');	// remove trailing comma
+
+	var propertiesList = collectionProperties.split(',');
+
+	var duplicatedItems = findDuplicates(propertiesList);
+
+	const errors = validationResult(request);
+
+	if (!errors.isEmpty()) {
+		response.render('new', {
+			title: 'Insert new collection',
+			errors: errors.mapped()
+		});
+	}
+	else {
+		if (secret != SECRET) {
+			response.render('new', {
+				title: 'Insert new collection',
+				errors: {
+					secret: {
+						msg: 'Invalid secret'
+					}
+				}
+			});
+		}
+		else if (!collectionProperties.match(/^[0-9A-Za-z,]+$/)) {
+			response.render('new', {
+				title: 'Insert new collection',
+				errors: {
+					secret: {
+						msg: 'Only letters and numbers are allowed for properties'
+					}
+				}
+			});
+		}
+		else if (duplicatedItems.length > 0) {
+			response.render('new', {
+				title: 'Insert new collection',
+				errors: {
+					secret: {
+						msg: 'Duplicate properties are not allowed'
+					}
+				}
+			});
+		}
+		else {
+			console.log('API key is ok, authentication succeded');
+
+			// check if a collection with the same name exists
+			var duplicate = 0;
+			collections.forEach( (collection) => {
+				if (collection.name == collectionName) {
+					duplicate = 1;
+				}
+			});
+
+			if (duplicate == 1) {
+				response.render('new', {
+					title: 'Insert new collection',
+					errors: {
+						secret: {
+							msg: 'This collection already exists'
+						}
+					}
+				});
+			}
+			else {	// TODO validate properties
+				var newCollection = {};
+				newCollection.name = collectionName;
+				newCollection.properties = propertiesList;
+				newCollection.items = [];	// empty array
+				newCollection.lastitemid = 0;
+
+				console.log(newCollection);
+
+				collections.push(newCollection);
+				saveToDbFile();
+
+				response.render('index', {
+					collections: collections
+				});
+			}
+		}
+	}
+
+	
+});
+
 app.post('/add/:name', [
 	check('*').isLength({min:1}).withMessage('Value required'),
 	], (request, response) => {
@@ -331,11 +421,6 @@ app.post('/add/:name', [
   
 });
 
-// page for displaying items of a collection
-app.get('/displayCollection', (request, response) => {
-	response.sendFile(__dirname + '/views/displayCollection.html');
-});
-
 app.get('/show/:name', (request, response) => {
 	collections.forEach( (collection) => {
 		if (collection.name == request.params.name) {
@@ -346,164 +431,6 @@ app.get('/show/:name', (request, response) => {
 			});
 		}
 	});
-});
-
-// *** Routes for API endpoints ***
-
-// called by index.html
-app.get('/api/getCollections', (request, response) => {
-	var listOfCollections = [];
-
-	// extract array of name: from collections
-	collections.forEach( (collection) => {
-		listOfCollections.push(collection.name);
-	});
-
-	// TODO: json ?
-	// if (err) {
-	// 	return response.status(400).json({ test: 'toto'})
-	// }
-
-	response.send(JSON.stringify(listOfCollections));
-});
-
-// called by insertItem.html
-app.post('/api/getCollectionProperties', (request, response) => {
-	// extract properties: from collections[name]
-	const collectionName = request.body.collectionName;
-
-	var listOfProperties = [];
-
-	collections.forEach( (collection) => {
-		if (collection.name == collectionName) {
-			listOfProperties = collection.properties;
-		}
-	});
-
-	response.send(JSON.stringify(listOfProperties));
-});
-
-// called by displayCollection.html
-app.post('/api/getCollectionItems', (request, response) => {
-	// extract items: from collections[name]
-	const collectionName = request.body.collectionName;
-
-	var listOfItems = [];
-	collections.forEach( (collection) => {
-		// TODO: strict comparaison with ===
-		if (collection.name == collectionName) {
-			listOfItems = collection.items;
-		}
-	});
-
-	response.send(JSON.stringify(listOfItems));
-});
-
-// called by insertItem.html
-app.post('/api/getCollectionSpecificItem', (request, response) => {
-	const collectionName = request.body.collectionName;
-	const itemId = request.body.itemId;
-
-	var specificItem = {};
-	// look for matching collection (name) and item (id)
-	collections.forEach( (collection) => {
-		if (collection.name == collectionName) {
-			collection.items.forEach ( (collItem) => {
-				if (collItem.id == itemId) {
-					specificItem = collItem;
-				}
-			});
-		}
-	});
-
-	response.send(JSON.stringify(specificItem));
-});
-
-// called by insertItem.html
-app.post('/api/insertItemInCollection', (request, response) => {
-	const collectionName = request.body.collectionName;
-	const newItem = request.body.item;
-	const apisecret = request.body.secret;
-
-	const itemId = newItem.itemId;		// only set for editing an item
-
-	console.log('/api/insertItemInCollection', newItem);
-
-	if (apisecret == SECRET) {
-		console.log('API key is ok, authentication succeded');
-
-		// look for the right collection
-		collections.forEach( (collection) => {
-			if (collection.name == collectionName) {
-				if (itemId == undefined) {			// insert new item
-					newItem.id = collection.lastitemid + 1;
-					collection.lastitemid += 1;
-					collection.items.push(newItem);		// TODO more verifications (API abuse)
-					// TODO: Save file before sending the response ? If so then async
-					saveToDbFile();
-					response.send(JSON.stringify(newItem));
-				}
-				else {						// modify existing item
-					// look for the specific item
-					collection.items.forEach ( (collItem) => {
-						if (collItem.id == itemId) {
-							// specific item found, loop through properties (expected for id)
-							for (prop in collItem) {
-								if (prop == "id") { continue; };	// do not touch the "id" property
-								collItem[prop] = newItem[prop];
-							}
-						}
-					});
-					saveToDbFile();
-					response.send(JSON.stringify(newItem));
-				}
-			}
-		});
-	}
-	else {
-		console.log('API key is NOT ok, authentication failed');
-		response.sendStatus(403);
-	}
-});
-
-// called by insertCollection.html
-app.post('/api/insertCollection', (request, response) => {
-	const collectionName = request.body.collectionName;
-	const collectionProperties = request.body.collectionProperties;
-	const apisecret = request.body.secret;
-
-	var newCollection = {};
-
-	if (apisecret != SECRET) {
-		console.log('API key is NOT ok, authentication failed');
-		response.sendStatus(403);
-	}
-	else {
-		console.log('API key is ok, authentication succeded');
-
-		// check if a collection with the same name exists
-		var duplicate = 0;
-		collections.forEach( (collection) => {
-			if (collection.name == collectionName) {
-				duplicate = 1;
-			}
-		});
-
-		if (duplicate == 0) {
-			newCollection.name = collectionName;
-			newCollection.properties = collectionProperties;
-			newCollection.items = [];	// empty array
-			newCollection.lastitemid = 0;
-
-			console.log(newCollection);
-
-			collections.push(newCollection);
-			saveToDbFile();
-		}
-
-		response.send(JSON.stringify(newCollection));
-	}
-
 });
 
 // listen for requests
