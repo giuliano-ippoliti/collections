@@ -342,21 +342,33 @@ router.post('/modify/:name/:id', [
 			// look for the specific item
 			collections.forEach( (collection) => {
 				if (collection.name == collectionName) {
-					collection.items.forEach ( (collItem) => {
-						if (collItem.id == itemId) {
-							// specific item found, loop through properties (expected for id)
-							for (prop in collItem) {
-								if (prop == "id") { continue; };	// do not touch the "id" property
-								collItem[prop] = newItem[prop];
-							}
+                    if (formAction == 'Save') {
+                        collection.items.forEach ( (collItem) => {
+                            if (collItem.id == itemId) {
+                                // specific item found, loop through properties (expected for id)
+                                for (prop in collItem) {
+                                    if (prop == "id") { continue; };	// do not touch the "id" property
+                                    collItem[prop] = newItem[prop];
+                                }
 
-                            db.saveToDbFile();
-                            request.flash('success', 'Item modified');
-							response.render('collection', {
-								collection: collection
-							});
-						}
-					});
+                                db.saveToDbFile();
+                                request.flash('success', 'Item modified');
+                                response.render('collection', {
+                                    collection: collection
+                                });
+                            }
+                        });
+                    }
+                    else {          // Delete
+                        let filteredItems = collection.items.filter(item => item.id != itemId);
+                        collection.items = filteredItems;
+
+                        db.saveToDbFile();
+                        request.flash('success', 'Item deleted');
+                        response.render('collection', {
+                            collection: collection
+                        });
+                    }
 				}
 			});
 		}
