@@ -28,9 +28,16 @@
         "c": "lkjljk",
         "d": "dsfsd",
         "id": 3
+      },
+      {
+        "a": "eee",
+        "b": "eee",
+        "c": "eee",
+        "d": "eee",
+        "id": 4
       }
     ],
-    "lastitemid": 3
+    "lastitemid": 4
   },
   {
     "name": "c2",
@@ -63,5 +70,30 @@
       }
     ],
     "lastitemid": 1
+  },
+  {
+    "name": "c4",
+    "properties": [
+      "p1",
+      "p2"
+    ],
+    "items": [
+      {
+        "p1": "uno",
+        "p2": "due",
+        "id": 1
+      },
+      {
+        "p1": "cinque",
+        "p2": "sei",
+        "id": 2
+      },
+      {
+        "p1": "sette",
+        "p2": "otto",
+        "id": 3
+      }
+    ],
+    "lastitemid": 3
   }
 ]
