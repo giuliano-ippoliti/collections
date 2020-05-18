@@ -11,20 +11,23 @@ const router = express.Router();
 // Functions
 const findDuplicates = arr => arr.filter((item, index) => arr.indexOf(item) != index);
 
-// Home route
+// GET routes
+
+// Homepage
 router.get('/', (request, response) => {
 	response.render('index', {
 		collections: collections
 	});
 });
 
-// LAST
+// New collection
 router.get('/new', (request, response) => {
 	response.render('new', {
 		title: 'Insert new collection'
 	});
 });
 
+// Add item into a collection
 router.get('/add/:name', (request, response) => {
 	collections.forEach( (collection) => {
 		if (collection.name == request.params.name) {
@@ -35,6 +38,38 @@ router.get('/add/:name', (request, response) => {
 	});
 });
 
+// Display a collection
+router.get('/show/:name', (request, response) => {
+	collections.forEach( (collection) => {
+		if (collection.name == request.params.name) {
+			response.render('collection', {
+				collection: collection,
+				editMode: 0
+			});
+		}
+	});
+});
+
+// Display a collection in edit mode (ids are shown and clickable)
+router.get('/edit/:name', (request, response) => {
+	collections.forEach( (collection) => {
+		if (collection.name == request.params.name) {
+			response.render('collection', {
+				collection: collection,
+				editMode: 1
+			});
+		}
+	});
+});
+
+// Display form for deleting a collection
+router.get('/delete/:name', (request, response) => {
+	response.render('deleteCollection', {
+		collection: request.params.name
+	});
+});
+
+// Display form for modifying an item
 router.get('/modify/:name/:id', (request, response) => {
 	const collectionName = request.params.name;
 	const itemId = request.params.id;
@@ -48,7 +83,6 @@ router.get('/modify/:name/:id', (request, response) => {
 				}
 			});
 
-			console.log(specificItem);
 			response.render('editItem', {
 				collection: collection,
 				item: specificItem
@@ -57,92 +91,35 @@ router.get('/modify/:name/:id', (request, response) => {
 	});
 });
 
-router.get('/edit/:name', (request, response) => {
-	collections.forEach( (collection) => {
-		if (collection.name == request.params.name) {
-			response.render('collection', {
-				collection: collection,
-				editMode: 1
-			});
-		}
-	});
+// POST routes
+
+// Delete a collection
+router.post('/delete/:name', (request, response) => {
+    const secret = request.body.secret;
+    const collectionName = request.params.name;
+
+    // check secret
+    if (secret != SECRET) {
+        response.render('deleteCollection', {
+            collection: collectionName,
+            errors: {
+                secret: {
+                    msg: 'Invalid secret'
+                }
+            }
+        });
+    }
+    else {
+        var filteredCollections = collections.filter(collection => collection.name != collectionName);
+
+        collections = filteredCollections;
+        db.saveToDbFile();
+        request.flash('success', 'Collection deleted');
+        response.redirect('/');
+    }
 });
 
-router.post('/modify/:name/:id', [
-	check('*').isLength({min:1}).withMessage('Value required'),
-	], (request, response) => {
-
-	const collectionName = request.params.name;
-	const itemId = request.params.id;
-	const newItem = request.body;
-
-	let thisCollection = {};
-	let thisItem = {};
-
-	// prevent API abuse : check existence of collection and item
-	// TODO on peut mieux faire
-	collections.forEach( (collection) => {
-		if (collection.name == collectionName) {
-			thisCollection = collection;
-			collection.items.forEach ( (collItem) => {
-				if (collItem.id == itemId) {
-					thisItem = collItem;
-				}
-			});
-		}
-	});
-	if ((Object.keys(thisCollection).length === 0) || (Object.keys(thisItem).length === 0))  {
-		response.status(404).send('Not found');
-	}
-
-	const errors = validationResult(request);
-
-	if (!errors.isEmpty()) {
-		response.render('editItem', {
-			collection: thisCollection,
-			item: thisItem,
-			errors: errors.mapped()
-		});
-	}
-	else {
-		// check secret
-		if (request.body.secret != SECRET) {
-			response.render('editItem', {
-				collection: thisCollection,
-				item: thisItem,
-				errors: {
-					secret: {
-						msg: 'Invalid secret'
-					}
-				}
-			});
-		}
-		else {
-			console.log('API key is ok, authentication succeded');
-
-			// look for the specific item
-			collections.forEach( (collection) => {
-				if (collection.name == collectionName) {
-					collection.items.forEach ( (collItem) => {
-						if (collItem.id == itemId) {
-							// specific item found, loop through properties (expected for id)
-							for (prop in collItem) {
-								if (prop == "id") { continue; };	// do not touch the "id" property
-								collItem[prop] = newItem[prop];
-							}
-
-							db.saveToDbFile();
-							response.render('collection', {
-								collection: collection
-							});
-						}
-					});
-				}
-			});
-		}
-	}
-});
-
+// Add a new collection
 router.post('/new', [
 	check('*').isLength({min:1}).withMessage('Value required'),
 	], (request, response) => {
@@ -227,25 +204,22 @@ router.post('/new', [
 				newCollection.items = [];	// empty array
 				newCollection.lastitemid = 0;
 
-				console.log(newCollection);
-
 				collections.push(newCollection);
 				db.saveToDbFile();
 
+                request.flash('success', 'Collection added');
 				response.render('index', {
 					collections: collections
 				});
 			}
 		}
-	}
-
-	
+	}	
 });
 
+// Add a new item in a collection
 router.post('/add/:name', [
 	check('*').isLength({min:1}).withMessage('Value required'),
 	], (request, response) => {
-	//console.log(request.params.name, request.body);
 
 	const collectionName = request.params.name;
 
@@ -291,7 +265,6 @@ router.post('/add/:name', [
 					newItem[key] = value;
 				}
 			}
-			console.log(newItem);
 
 			// look for the right collection
 			collections.forEach( (collection) => {
@@ -302,26 +275,91 @@ router.post('/add/:name', [
 					// TODO: Save file before sending the response ? If so then async
 					db.saveToDbFile();
 
+                    request.flash('success', 'Item added');
 					response.render('collection', {
 						collection: collection
 					});
 				}
 			});
 		}
-	}
-  
+	}  
 });
 
-router.get('/show/:name', (request, response) => {
+// Modify an item in a collection
+router.post('/modify/:name/:id', [
+	check('*').isLength({min:1}).withMessage('Value required'),
+	], (request, response) => {
+
+	const collectionName = request.params.name;
+	const itemId = request.params.id;
+	const newItem = request.body;
+
+	let thisCollection = {};
+	let thisItem = {};
+
+	// prevent API abuse : check existence of collection and item
+	// TODO on peut mieux faire
 	collections.forEach( (collection) => {
-		if (collection.name == request.params.name) {
-			//console.log(collection);
-			response.render('collection', {
-				collection: collection,
-				editMode: 0
+		if (collection.name == collectionName) {
+			thisCollection = collection;
+			collection.items.forEach ( (collItem) => {
+				if (collItem.id == itemId) {
+					thisItem = collItem;
+				}
 			});
 		}
 	});
+	if ((Object.keys(thisCollection).length === 0) || (Object.keys(thisItem).length === 0))  {
+		response.status(404).send('Not found');
+	}
+
+	const errors = validationResult(request);
+
+	if (!errors.isEmpty()) {
+		response.render('editItem', {
+			collection: thisCollection,
+			item: thisItem,
+			errors: errors.mapped()
+		});
+	}
+	else {
+		// check secret
+		if (request.body.secret != SECRET) {
+			response.render('editItem', {
+				collection: thisCollection,
+				item: thisItem,
+				errors: {
+					secret: {
+						msg: 'Invalid secret'
+					}
+				}
+			});
+		}
+		else {
+			console.log('API key is ok, authentication succeded');
+
+			// look for the specific item
+			collections.forEach( (collection) => {
+				if (collection.name == collectionName) {
+					collection.items.forEach ( (collItem) => {
+						if (collItem.id == itemId) {
+							// specific item found, loop through properties (expected for id)
+							for (prop in collItem) {
+								if (prop == "id") { continue; };	// do not touch the "id" property
+								collItem[prop] = newItem[prop];
+							}
+
+                            db.saveToDbFile();
+                            request.flash('success', 'Item modified');
+							response.render('collection', {
+								collection: collection
+							});
+						}
+					});
+				}
+			});
+		}
+	}
 });
 
 module.exports = router;

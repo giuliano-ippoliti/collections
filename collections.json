@@ -42,13 +42,13 @@
   {
     "name": "c2",
     "properties": [
-      "b",
-      "n"
+      "p",
+      "m"
     ],
     "items": [
       {
-        "b": "fsdfsd",
-        "n": "fsfsd",
+        "p": "ghjghjgAAA",
+        "m": "fhjfhfgh",
         "id": 1
       }
     ],
@@ -59,41 +59,9 @@
     "properties": [
       "a",
       "b",
-      "c"
+      "n"
     ],
-    "items": [
-      {
-        "a": "ffdfzeezezez",
-        "b": "fsdfsf",
-        "c": "fdsfdsfsd",
-        "id": 1
-      }
-    ],
-    "lastitemid": 1
-  },
-  {
-    "name": "c4",
-    "properties": [
-      "p1",
-      "p2"
-    ],
-    "items": [
-      {
-        "p1": "uno",
-        "p2": "due",
-        "id": 1
-      },
-      {
-        "p1": "cinque",
-        "p2": "sei",
-        "id": 2
-      },
-      {
-        "p1": "sette",
-        "p2": "otto",
-        "id": 3
-      }
-    ],
-    "lastitemid": 3
+    "items": [],
+    "lastitemid": 0
   }
 ]

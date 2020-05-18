@@ -1,0 +1,16 @@
+extends layout
+
+block content
+    h1 Delete #{collection} ?
+
+    form(method='POST',action='/delete/'+collection)
+        br
+        li Secret:
+        input.form-control(name='secret', type='password')
+        br
+        input.btn.btn-primary(type='submit',value='Confirm deletion')
+
+    br
+    a(href="/show/"+collection) Back
+    br
+    br
