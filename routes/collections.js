@@ -292,7 +292,8 @@ router.post('/modify/:name/:id', [
 
 	const collectionName = request.params.name;
 	const itemId = request.params.id;
-	const newItem = request.body;
+	const newItem = request.body;           //it includes the name of the button (_btn)
+    const formAction = request.body._btn;   // Save or Delete
 
 	let thisCollection = {};
 	let thisItem = {};

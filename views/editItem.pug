@@ -13,8 +13,11 @@ block content
     li Secret:
     input.form-control(name='secret', type='password')
     br
-    input.btn.btn-primary(type='submit',value='Save changes')
-
+    p
+      input.btn.btn-primary(type='submit',name='_btn',value='Save')
+    p
+      input.btn.btn-danger(type='submit',name='_btn',value='Delete')
+  
   br
   br
   a(href="/edit/"+collection.name) Back
