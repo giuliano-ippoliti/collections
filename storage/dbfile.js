@@ -7,6 +7,7 @@ const dbFile = 'collections.json';
 // Functions
 // TODO add async
 const saveToDbFile = () => {
+	console.log('Saving to '+dbFile);
 	// converting to JSON for storing in db file
 	var DbDump = JSON.stringify(collections, null, '  ');
 
