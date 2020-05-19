@@ -126,16 +126,21 @@ router.post('/new', [
 
 	const collectionName = request.body.name;
 	const secret = request.body.secret;
-	var inputProperties = request.body.properties;			// TODO forbid special caracters, and final,
+	var shortInputProperties = request.body.shortProperties;
+	var longInputProperties = request.body.longProperties;
 	
 	// Process properties
-	var collectionProperties = inputProperties.replace(/,\s+/g, ',');	// remove spaces after commas
-	collectionProperties = collectionProperties.replace(/,+/g, ',');	// deduplicate multiple commas
-	collectionProperties = collectionProperties.replace(/,+$/, '');	// remove trailing comma
+	var shortProperties = shortInputProperties.replace(/,\s+/g, ',');	// remove spaces after commas
+	shortProperties = shortProperties.replace(/,+/g, ',');	// deduplicate multiple commas
+	shortProperties = shortProperties.replace(/,+$/, '');	// remove trailing comma
+	var shortPropertiesList = shortProperties.split(',');
+	var shortDuplicatedItems = findDuplicates(shortPropertiesList);
 
-	var propertiesList = collectionProperties.split(',');
-
-	var duplicatedItems = findDuplicates(propertiesList);
+	var longProperties = longInputProperties.replace(/,\s+/g, ',');	// remove spaces after commas
+	longProperties = longProperties.replace(/,+/g, ',');	// deduplicate multiple commas
+	longProperties = longProperties.replace(/,+$/, '');	// remove trailing comma
+	var longPropertiesList = longProperties.split(',');
+	var longDuplicatedItems = findDuplicates(longPropertiesList);
 
 	const errors = validationResult(request);
 
@@ -156,22 +161,42 @@ router.post('/new', [
 				}
 			});
 		}
-		else if (!collectionProperties.match(/^[0-9A-Za-z,]+$/)) {
+		else if (!shortProperties.match(/^[0-9A-Za-z,]+$/)) {
 			response.render('new', {
 				title: 'Insert new collection',
 				errors: {
 					secret: {
-						msg: 'Only letters and numbers are allowed for properties'
+						msg: 'Only letters and numbers are allowed for short properties'
 					}
 				}
 			});
 		}
-		else if (duplicatedItems.length > 0) {
+		else if (!longProperties.match(/^[0-9A-Za-z,]+$/)) {
 			response.render('new', {
 				title: 'Insert new collection',
 				errors: {
 					secret: {
-						msg: 'Duplicate properties are not allowed'
+						msg: 'Only letters and numbers are allowed for long properties'
+					}
+				}
+			});
+		}
+		else if (shortDuplicatedItems.length > 0) {
+			response.render('new', {
+				title: 'Insert new collection',
+				errors: {
+					secret: {
+						msg: 'Duplicate short properties are not allowed'
+					}
+				}
+			});
+		}
+		else if (longDuplicatedItems.length > 0) {
+			response.render('new', {
+				title: 'Insert new collection',
+				errors: {
+					secret: {
+						msg: 'Duplicate long properties are not allowed'
 					}
 				}
 			});
@@ -200,7 +225,8 @@ router.post('/new', [
 			else {	// TODO validate properties
 				var newCollection = {};
 				newCollection.name = collectionName;
-				newCollection.properties = propertiesList;
+				newCollection.shortProperties = shortPropertiesList;
+				newCollection.longProperties = longPropertiesList;
 				newCollection.items = [];	// empty array
 				newCollection.lastitemid = 0;
 

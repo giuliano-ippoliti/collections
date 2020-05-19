@@ -33,21 +33,6 @@
     "lastitemid": 3
   },
   {
-    "name": "c2",
-    "properties": [
-      "b",
-      "n"
-    ],
-    "items": [
-      {
-        "b": "fsdfsd",
-        "n": "fsfsd",
-        "id": 1
-      }
-    ],
-    "lastitemid": 1
-  },
-  {
     "name": "c3",
     "properties": [
       "p",
@@ -61,5 +46,55 @@
       }
     ],
     "lastitemid": 1
+  },
+  {
+    "name": "famille",
+    "properties": [
+      "membres",
+      "age"
+    ],
+    "items": [
+      {
+        "membres": "Antoine",
+        "age": "5",
+        "id": 1
+      },
+      {
+        "membres": "Mélanie",
+        "age": "32",
+        "id": 2
+      }
+    ],
+    "lastitemid": 2
+  },
+  {
+    "name": "livre",
+    "properties": [
+      "auteur",
+      "titre",
+      "commentaire"
+    ],
+    "items": [
+      {
+        "auteur": "Stendhal",
+        "titre": "Le Rouge et le Noir",
+        "commentaire": "Très bon livre",
+        "id": 1
+      }
+    ],
+    "lastitemid": 1
+  },
+  {
+    "name": "postes",
+    "shortProperties": [
+      "date",
+      "duree"
+    ],
+    "longProperties": [
+      "commenaire",
+      "missions"
+    ],
+    "items": [],
+    "lastitemid": 0
   }
 ]

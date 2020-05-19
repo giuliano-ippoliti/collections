@@ -8,8 +8,10 @@ block content
   form(method='POST',action='/new')
     li Name:
     input.form-control(name='name', type='text')
-    li Properties (comma-separated list):
-    input.form-control(name='properties', type='text')
+    li Short-text properties (comma-separated list):
+    input.form-control(name='shortProperties', type='text')
+    li Long-text properties (comma-separated list):
+    input.form-control(name='longProperties', type='text')
     li Secret:
     input.form-control(name='secret', type='password')
     br
