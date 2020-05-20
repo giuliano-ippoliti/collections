@@ -1,6 +1,6 @@
 {
   "name": "collections",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Wepapp for managing collections of items",
   "main": "server.js",
   "directories": {

@@ -19,6 +19,8 @@ jsconfig.json
 *-local.properties
 *-local.json
 *.key
+collections.json
+collectionsTest.json
 volumes/
 
 ### OS generated files ####
