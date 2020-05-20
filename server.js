@@ -1,23 +1,22 @@
 // server.js
 // where the node app starts
-// TODO: lock dependencies
-// TODO: dependences au debut du fichier
-// TODO: Helmet
 
-var fsExtra = require('fs-extra');
-var fs = require('fs');
+const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
-var express = require('express');
+const express = require('express');
 const bodyParser = require('body-parser');
 const flash = require('connect-flash');
 const session = require('express-session');
 const { check, validationResult } = require('express-validator');
+const helmet = require('helmet');
 
 let coll = require('./routes/collections');
 const db = require('./storage/dbfile');
 
 var app = express();
+
+app.use(helmet());
 
 // Middleware
 // parse application/x-www-form-urlencoded
