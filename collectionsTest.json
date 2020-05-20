@@ -1,40 +1,46 @@
 [
   {
-    "name": "c1",
-    "properties": [
-      "a",
-      "b",
-      "c",
-      "d"
+    "name": "postes",
+    "shortProperties": [
+      "date",
+      "duree"
+    ],
+    "longProperties": [
+      "commenaire",
+      "missions"
     ],
     "items": [
       {
-        "a": "sdfAAA",
-        "b": "fsdfsdAAAAA",
-        "c": "fsdfsdAAA",
-        "d": "fsdsfdAAA",
+        "date": "20/03/2020",
+        "duree": "3 jours",
+        "commenaire": "Ciao\r\nbello",
+        "missions": "Uno\r\nDue\r\nTre",
         "id": 1
       },
       {
-        "a": "zed",
-        "b": "zerezezr",
-        "c": "rezrze",
-        "d": "rezreezr",
-        "id": 2
+        "date": "aaa",
+        "duree": "bbb",
+        "commenaire": "C'est l'un des derniers quotidiens français dits « du soir », qui paraît, daté du lendemain, à Paris en début d'après-midi ainsi que, un peu plus tard, dans certaines grandes villes, et est distribué ailleurs le matin suivant.",
+        "missions": "Le Monde est un journal français fondé par Hubert Beuve-Méry en 1944.\r\n\r\nC'est l'un des derniers quotidiens français dits « du soir », qui paraît, daté du lendemain, à Paris en début d'après-midi ainsi que, un peu plus tard, dans certaines grandes villes, et est distribué ailleurs le matin suivant.\r\n\r\nClassé parmi les quotidiens français « de référence »2, il est le quotidien national payant le plus lu en France (2,42 millions de lecteurs en 2016)3 et le deuxième en nombre d'exemplaires vendus (323 565 exemplaires par numéro en 2019)4,5.\r\n\r\nIl a été le journal le plus diffusé à l'étranger jusque dans les années 2000, avec une diffusion journalière hors France de 40 000 exemplaires6,7, tombée à 26 000 exemplaires en 20128.\r\n\r\nSa ligne éditoriale est parfois présentée comme étant de centre gauche9, bien que cette affirmation soit récusée par le journal lui-même, qui revendique un traitement non partisan10. Son lectorat était néanmoins composé à 63 % de lecteurs de gauche en 2014, selon un sondage réalisé par l'Ifop pour le magazine Marianne11. ",
+        "id": 3
       }
     ],
-    "lastitemid": 2
+    "lastitemid": 3
   },
   {
-    "name": "c2",
-    "properties": [
-      "b",
-      "n"
+    "name": "livres",
+    "shortProperties": [
+      "auteur",
+      "date"
+    ],
+    "longProperties": [
+      "commentaire"
     ],
     "items": [
       {
-        "b": "fsdfsd",
-        "n": "fsfsd",
+        "auteur": "Stendhal",
+        "date": "11/11/2000",
+        "commentaire": "W3Schools is optimized for learning, testing, and training. Examples might be simplified to improve reading and basic understanding. Tutorials, references, and examples are constantly reviewed to avoid errors, but we cannot warrant full correctness of all content. While using this site, you agree to have read and accepted our terms of use, cookie and privacy policy. Copyright 1999-2020 by Refsnes Data. All Rights Reserved.\r\nPowered by W3.CSS.",
         "id": 1
       }
     ],

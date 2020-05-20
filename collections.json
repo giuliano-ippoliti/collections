@@ -45,5 +45,36 @@
       }
     ],
     "lastitemid": 1
+  },
+  {
+    "name": "c1",
+    "shortProperties": [
+      "a",
+      "b",
+      "c"
+    ],
+    "longProperties": [
+      "d",
+      "e",
+      "f"
+    ],
+    "items": [],
+    "lastitemid": 0
+  },
+  {
+    "name": "c2",
+    "shortProperties": [],
+    "longProperties": [
+      "l1",
+      "l2"
+    ],
+    "items": [
+      {
+        "l1": "dsdsfdsfds\r\nfdsfdsf\r\nfdsdf",
+        "l2": "dfsfdsf*\r\nfsdfdsf\r\nfdfsfsd",
+        "id": 1
+      }
+    ],
+    "lastitemid": 1
   }
 ]

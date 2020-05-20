@@ -11,6 +11,28 @@ const router = express.Router();
 // Functions
 const findDuplicates = arr => arr.filter((item, index) => arr.indexOf(item) != index);
 
+const sanitizeProperties = (inputProperties) => {
+	var properties = inputProperties.replace(/,\s+/g, ',');	// remove spaces after commas
+	properties = properties.replace(/,+/g, ',');	// deduplicate multiple commas
+	properties = properties.replace(/,+$/, '');	// remove trailing comma
+
+	if (!properties) {
+		return ['ERR_Empty'];
+	}
+	else if (!properties.match(/^[0-9A-Za-z,]+$/)) {
+		return ['ERR_InvalidChar'];
+	}
+
+	var propertiesList =  properties.split(',');
+
+	var duplicatedItems = findDuplicates(propertiesList);
+	if (duplicatedItems.length > 0) {
+		return ['ERR_DuplicatedItems'];
+	}
+
+	return propertiesList;
+}
+
 // GET routes
 
 // Homepage
@@ -21,9 +43,21 @@ router.get('/', (request, response) => {
 });
 
 // New collection
-router.get('/new', (request, response) => {
-	response.render('new', {
-		title: 'Insert new collection'
+router.get('/writeCollection', (request, response) => {
+	response.render('collectionDetails', {
+		title: 'Insert new collection',
+		createMode: 1
+	});
+});
+
+// Modify collection's properties
+router.get('/change/:name', (request, response) => {
+	const collectionName = request.params.name;
+
+	response.render('collectionDetails', {
+		title: 'Add new properties for '+collectionName,
+		collectionName: collectionName,
+		createMode: 0
 	});
 });
 
@@ -107,139 +141,160 @@ router.post('/delete/:name', (request, response) => {
                     msg: 'Invalid secret'
                 }
             }
-        });
+		});
+		return;
     }
-    else {
-        var filteredCollections = collections.filter(collection => collection.name != collectionName);
 
-        collections = filteredCollections;
-        db.saveToDbFile();
-        request.flash('success', 'Collection deleted');
-        response.redirect('/');
-    }
+	var filteredCollections = collections.filter(collection => collection.name != collectionName);
+
+	collections = filteredCollections;
+	db.saveToDbFile();
+	request.flash('success', 'Collection deleted');
+	response.redirect('/');
+
 });
 
-// Add a new collection
-router.post('/new', [
-	check('*').isLength({min:1}).withMessage('Value required'),
+// Add a new collection, or change its properties
+router.post('/writeCollection', [
+	check('name').isLength({min:1}).withMessage('Name required for the new collection'),
 	], (request, response) => {
-
 	const collectionName = request.body.name;
 	const secret = request.body.secret;
-	var shortInputProperties = request.body.shortProperties;
-	var longInputProperties = request.body.longProperties;
-	
-	// Process properties
-	var shortProperties = shortInputProperties.replace(/,\s+/g, ',');	// remove spaces after commas
-	shortProperties = shortProperties.replace(/,+/g, ',');	// deduplicate multiple commas
-	shortProperties = shortProperties.replace(/,+$/, '');	// remove trailing comma
-	var shortPropertiesList = shortProperties.split(',');
-	var shortDuplicatedItems = findDuplicates(shortPropertiesList);
+	const shortInputProperties = request.body.shortProperties;
+	const longInputProperties = request.body.longProperties;
+	const formAction = request.body._btn;   // Add or Modify
 
-	var longProperties = longInputProperties.replace(/,\s+/g, ',');	// remove spaces after commas
-	longProperties = longProperties.replace(/,+/g, ',');	// deduplicate multiple commas
-	longProperties = longProperties.replace(/,+$/, '');	// remove trailing comma
-	var longPropertiesList = longProperties.split(',');
-	var longDuplicatedItems = findDuplicates(longPropertiesList);
+	var createMode = 0;
+	if (formAction == 'Add') {
+		createMode = 1;
+	}
 
+	// First-level input validation
 	const errors = validationResult(request);
-
 	if (!errors.isEmpty()) {
-		response.render('new', {
+		response.render('collectionDetails', {
 			title: 'Insert new collection',
+			createMode: createMode,
 			errors: errors.mapped()
 		});
+		return;
 	}
-	else {
-		if (secret != SECRET) {
-			response.render('new', {
-				title: 'Insert new collection',
-				errors: {
-					secret: {
-						msg: 'Invalid secret'
-					}
-				}
-			});
-		}
-		else if (!shortProperties.match(/^[0-9A-Za-z,]+$/)) {
-			response.render('new', {
-				title: 'Insert new collection',
-				errors: {
-					secret: {
-						msg: 'Only letters and numbers are allowed for short properties'
-					}
-				}
-			});
-		}
-		else if (!longProperties.match(/^[0-9A-Za-z,]+$/)) {
-			response.render('new', {
-				title: 'Insert new collection',
-				errors: {
-					secret: {
-						msg: 'Only letters and numbers are allowed for long properties'
-					}
-				}
-			});
-		}
-		else if (shortDuplicatedItems.length > 0) {
-			response.render('new', {
-				title: 'Insert new collection',
-				errors: {
-					secret: {
-						msg: 'Duplicate short properties are not allowed'
-					}
-				}
-			});
-		}
-		else if (longDuplicatedItems.length > 0) {
-			response.render('new', {
-				title: 'Insert new collection',
-				errors: {
-					secret: {
-						msg: 'Duplicate long properties are not allowed'
-					}
-				}
-			});
-		}
-		else {
-			console.log('API key is ok, authentication succeded');
 
-			// check if a collection with the same name exists
-			var duplicate = 0;
-			collections.forEach( (collection) => {
-				if (collection.name == collectionName) {
-					duplicate = 1;
-				}
-			});
+	// Process properties
+	var shortPropertiesList = sanitizeProperties(shortInputProperties);
+	var longPropertiesList = sanitizeProperties(longInputProperties);
 
-			if (duplicate == 1) {
-				response.render('new', {
-					title: 'Insert new collection',
-					errors: {
-						secret: {
-							msg: 'This collection already exists'
-						}
-					}
-				});
+	if ((shortPropertiesList[0] == 'ERR_Empty') && (longPropertiesList[0] == 'ERR_Empty')) {
+		response.render('collectionDetails', {
+			title: 'Insert new collection',
+			createMode: createMode,
+			collectionName: collectionName,
+			errors: {
+				secret: {
+					msg: 'You must declare at least one property'
+				}
 			}
-			else {	// TODO validate properties
-				var newCollection = {};
-				newCollection.name = collectionName;
-				newCollection.shortProperties = shortPropertiesList;
-				newCollection.longProperties = longPropertiesList;
-				newCollection.items = [];	// empty array
-				newCollection.lastitemid = 0;
-
-				collections.push(newCollection);
-				db.saveToDbFile();
-
-                request.flash('success', 'Collection added');
-				response.render('index', {
-					collections: collections
-				});
+		});
+		return;
+	}
+	else if ((shortPropertiesList[0] == 'ERR_InvalidChar') || (longPropertiesList[0] == 'ERR_InvalidChar')) {
+		response.render('collectionDetails', {
+			title: 'Insert new collection',
+			createMode: createMode,
+			collectionName: collectionName,
+			errors: {
+				secret: {
+					msg: 'Only letters and numbers are allowed for properties'
+				}
 			}
+		});
+		return;
+	}
+	else if ((shortPropertiesList[0] == 'ERR_DuplicatedItems') || (longPropertiesList[0] == 'ERR_DuplicatedItems')) {
+		response.render('collectionDetails', {
+			title: 'Insert new collection',
+			createMode: createMode,
+			collectionName: collectionName,
+			errors: {
+				secret: {
+					msg: 'Duplicate properties are not allowed'
+				}
+			}
+		});
+		return;
+	}
+
+	// Check for duplicates
+	// Properties
+	var duplicateProperties = findDuplicates(shortPropertiesList.concat(longPropertiesList));
+	if (duplicateProperties.length > 0) {
+		response.render('collectionDetails', {
+			title: 'Insert new collection',
+			createMode: createMode,
+			collectionName: collectionName,
+			errors: {
+				secret: {
+					msg: 'Duplicate properties are not allowed'
+				}
+			}
+		});
+		return;
+	}
+	// Collection
+	var duplicateCollection = 0;
+	collections.forEach( (collection) => {
+		if (collection.name == collectionName) {
+			duplicateCollection = 1;
 		}
-	}	
+	});
+	if (duplicateCollection == 1) {
+		response.render('collectionDetails', {
+			title: 'Insert new collection',
+			createMode: createMode,
+			collectionName: collectionName,
+			errors: {
+				secret: {
+					msg: 'This collection already exists'
+				}
+			}
+		});
+		return;
+	}
+
+	if (secret != SECRET) {
+		response.render('collectionDetails', {
+			title: 'Insert new collection',
+			createMode: createMode,
+			collectionName: collectionName,
+			errors: {
+				secret: {
+					msg: 'Invalid secret'
+				}
+			}
+		});
+		return;
+	}
+
+	console.log('API key is ok, authentication succeded');
+
+	// filter error messages in properties... a bit artificial TODO
+	shortPropertiesList = shortPropertiesList.filter(prop => !prop.match(/ERR_/));
+	longPropertiesList = longPropertiesList.filter(prop => !prop.match(/ERR_/));
+
+	var newCollection = {};
+	newCollection.name = collectionName;
+	newCollection.shortProperties = shortPropertiesList;
+	newCollection.longProperties = longPropertiesList;
+	newCollection.items = [];	// empty array
+	newCollection.lastitemid = 0;
+
+	collections.push(newCollection);
+	db.saveToDbFile();
+
+	request.flash('success', 'Collection added');
+	response.render('index', {
+		collections: collections
+	});
 });
 
 // Add a new item in a collection
