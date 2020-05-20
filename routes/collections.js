@@ -19,7 +19,7 @@ const sanitizeProperties = (inputProperties) => {
 	if (!properties) {
 		return ['ERR_Empty'];
 	}
-	else if (!properties.match(/^[0-9A-Za-z,]+$/)) {
+	else if (!properties.match(/^[0-9A-Za-zàâçéèêëîïôûùüÿñæœ,]+$/)) {
 		return ['ERR_InvalidChar'];
 	}
 
@@ -330,8 +330,8 @@ router.post('/writeCollection', [
 				collection.shortProperties = collection.shortProperties.concat(shortPropertiesList);
 				collection.longProperties = collection.longProperties.concat(longPropertiesList);
 				collection.items.forEach ( (collItem) => {
-					shortPropertiesList.forEach( (sp) => collItem.sp = '');
-					longPropertiesList.forEach( (lp) => collItem.lp = '');
+					shortPropertiesList.forEach( (sp) => collItem[sp] = '');
+					longPropertiesList.forEach( (lp) => collItem[lp] = '');
 				});
 			}
 		});
