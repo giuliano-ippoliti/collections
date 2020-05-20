@@ -1,90 +1,5 @@
 [
   {
-    "name": "c1",
-    "properties": [
-      "a",
-      "b",
-      "c",
-      "d"
-    ],
-    "items": [
-      {
-        "a": "sdfAAA",
-        "b": "fsdfsdAAAAA",
-        "c": "fsdfsdAAA",
-        "d": "fsdsfdAAA",
-        "id": 1
-      },
-      {
-        "a": "zedAAA",
-        "b": "zerezezrAAAAAAAAAAAAAAAAAAAAAAAAAA",
-        "c": "rezrze",
-        "d": "rezreezr",
-        "id": 2
-      },
-      {
-        "a": "dffdfd",
-        "b": "fdfdsdf",
-        "c": "ffdfddfsdfs",
-        "d": "fdfddfdfs",
-        "id": 3
-      }
-    ],
-    "lastitemid": 3
-  },
-  {
-    "name": "c3",
-    "properties": [
-      "p",
-      "q"
-    ],
-    "items": [
-      {
-        "p": "dfdfds",
-        "q": "fdfdsfds",
-        "id": 1
-      }
-    ],
-    "lastitemid": 1
-  },
-  {
-    "name": "famille",
-    "properties": [
-      "membres",
-      "age"
-    ],
-    "items": [
-      {
-        "membres": "Antoine",
-        "age": "5",
-        "id": 1
-      },
-      {
-        "membres": "Mélanie",
-        "age": "32",
-        "id": 2
-      }
-    ],
-    "lastitemid": 2
-  },
-  {
-    "name": "livre",
-    "properties": [
-      "auteur",
-      "titre",
-      "commentaire"
-    ],
-    "items": [
-      {
-        "auteur": "Stendhal",
-        "titre": "Le Rouge et le Noir",
-        "commentaire": "Très bon livre",
-        "id": 1
-      }
-    ],
-    "lastitemid": 1
-  },
-  {
     "name": "postes",
     "shortProperties": [
       "date",
@@ -111,5 +26,24 @@
       }
     ],
     "lastitemid": 3
+  },
+  {
+    "name": "livres",
+    "shortProperties": [
+      "auteur",
+      "date"
+    ],
+    "longProperties": [
+      "commentaire"
+    ],
+    "items": [
+      {
+        "auteur": "Stendhal",
+        "date": "11/11/2000",
+        "commentaire": "W3Schools is optimized for learning, testing, and training. Examples might be simplified to improve reading and basic understanding. Tutorials, references, and examples are constantly reviewed to avoid errors, but we cannot warrant full correctness of all content. While using this site, you agree to have read and accepted our terms of use, cookie and privacy policy. Copyright 1999-2020 by Refsnes Data. All Rights Reserved.\r\nPowered by W3.CSS.",
+        "id": 1
+      }
+    ],
+    "lastitemid": 1
   }
 ]

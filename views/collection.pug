@@ -18,7 +18,7 @@ block content
             tr
               td #{key}
               td
-                a.btn.bg-primary(href="/modify/"+collection.name+"/"+item[key]) #{item[key]}
+                a.btn.bg-primary.text-white(href="/modify/"+collection.name+"/"+item[key]) #{item[key]}
         else
           tr
             td #{key}
@@ -26,11 +26,11 @@ block content
     br
 
   hr
-  a.btn.bg-primary.mr-1(href="/add/"+collection.name) Add item
-  a.btn.bg-primary.mr-1(href="/edit/"+collection.name) Edit collection's items
-  a.btn.bg-danger.mr-1(href="/delete/"+collection.name) Delete collection
+  a.btn.bg-primary.mr-1.text-white(href="/add/"+collection.name) Add item
+  a.btn.bg-primary.mr-1.text-white(href="/edit/"+collection.name) Edit collection's items
+  a.btn.bg-danger.mr-1.text-white(href="/delete/"+collection.name) Delete collection
   br
   br
-  a.btn.bg-info(href="/") Home
+  a.btn.bg-info.text-white(href="/") Home
   br
   br
