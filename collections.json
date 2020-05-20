@@ -51,15 +51,33 @@
     "shortProperties": [
       "a",
       "b",
-      "c"
+      "c",
+      "s1",
+      "s2"
     ],
     "longProperties": [
       "d",
       "e",
-      "f"
+      "f",
+      "l1",
+      "l2"
     ],
-    "items": [],
-    "lastitemid": 0
+    "items": [
+      {
+        "a": "AAA",
+        "b": "BBB",
+        "c": "CCC",
+        "s1": "DDD",
+        "s2": "EEE",
+        "d": "FFF",
+        "e": "GGG",
+        "f": "HHH",
+        "l1": "III",
+        "l2": "LLL",
+        "id": 1
+      }
+    ],
+    "lastitemid": 1
   },
   {
     "name": "c2",

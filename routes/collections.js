@@ -165,17 +165,33 @@ router.post('/writeCollection', [
 	const formAction = request.body._btn;   // Add or Modify
 
 	var createMode = 0;
+	var title = 'Add new properties for '+collectionName;
 	if (formAction == 'Add') {
 		createMode = 1;
+		title = 'Insert new collection';
 	}
 
 	// First-level input validation
 	const errors = validationResult(request);
 	if (!errors.isEmpty()) {
 		response.render('collectionDetails', {
-			title: 'Insert new collection',
+			title: title,
 			createMode: createMode,
 			errors: errors.mapped()
+		});
+		return;
+	}
+
+	if (secret != SECRET) {
+		response.render('collectionDetails', {
+			title: title,
+			createMode: createMode,
+			collectionName: collectionName,
+			errors: {
+				secret: {
+					msg: 'Invalid secret'
+				}
+			}
 		});
 		return;
 	}
@@ -186,7 +202,7 @@ router.post('/writeCollection', [
 
 	if ((shortPropertiesList[0] == 'ERR_Empty') && (longPropertiesList[0] == 'ERR_Empty')) {
 		response.render('collectionDetails', {
-			title: 'Insert new collection',
+			title: title,
 			createMode: createMode,
 			collectionName: collectionName,
 			errors: {
@@ -199,7 +215,7 @@ router.post('/writeCollection', [
 	}
 	else if ((shortPropertiesList[0] == 'ERR_InvalidChar') || (longPropertiesList[0] == 'ERR_InvalidChar')) {
 		response.render('collectionDetails', {
-			title: 'Insert new collection',
+			title: title,
 			createMode: createMode,
 			collectionName: collectionName,
 			errors: {
@@ -212,7 +228,7 @@ router.post('/writeCollection', [
 	}
 	else if ((shortPropertiesList[0] == 'ERR_DuplicatedItems') || (longPropertiesList[0] == 'ERR_DuplicatedItems')) {
 		response.render('collectionDetails', {
-			title: 'Insert new collection',
+			title: title,
 			createMode: createMode,
 			collectionName: collectionName,
 			errors: {
@@ -226,72 +242,109 @@ router.post('/writeCollection', [
 
 	// Check for duplicates
 	// Properties
-	var duplicateProperties = findDuplicates(shortPropertiesList.concat(longPropertiesList));
-	if (duplicateProperties.length > 0) {
-		response.render('collectionDetails', {
-			title: 'Insert new collection',
-			createMode: createMode,
-			collectionName: collectionName,
-			errors: {
-				secret: {
-					msg: 'Duplicate properties are not allowed'
+	if (createMode) {
+		// a bit easier to check as all properties are new
+		var duplicateProperties = findDuplicates(shortPropertiesList.concat(longPropertiesList));
+		if (duplicateProperties.length > 0) {
+			response.render('collectionDetails', {
+				title: title,
+				createMode: createMode,
+				collectionName: collectionName,
+				errors: {
+					secret: {
+						msg: 'Duplicate properties are not allowed'
+					}
 				}
-			}
-		});
-		return;
-	}
-	// Collection
-	var duplicateCollection = 0;
-	collections.forEach( (collection) => {
-		if (collection.name == collectionName) {
-			duplicateCollection = 1;
+			});
+			return;
 		}
-	});
-	if (duplicateCollection == 1) {
-		response.render('collectionDetails', {
-			title: 'Insert new collection',
-			createMode: createMode,
-			collectionName: collectionName,
-			errors: {
-				secret: {
-					msg: 'This collection already exists'
-				}
+	}
+	else {
+		// concat new and existing properties to check for dublicates
+		// look for existing properties in the collection
+		var existingProperties = [];
+		collections.forEach( (collection) => {
+			if (collection.name == collectionName) {
+				existingProperties = collection.shortProperties.concat(collection.longProperties);
 			}
 		});
-		return;
+		var newProperties = shortPropertiesList.concat(longPropertiesList);
+		var duplicateProperties = findDuplicates(existingProperties.concat(newProperties));
+		if (duplicateProperties.length > 0) {
+			response.render('collectionDetails', {
+				title: title,
+				createMode: createMode,
+				collectionName: collectionName,
+				errors: {
+					secret: {
+						msg: 'Some new properties already exist, this is not allowed'
+					}
+				}
+			});
+			return;
+		}
 	}
 
-	if (secret != SECRET) {
-		response.render('collectionDetails', {
-			title: 'Insert new collection',
-			createMode: createMode,
-			collectionName: collectionName,
-			errors: {
-				secret: {
-					msg: 'Invalid secret'
-				}
+	// Collection (ne need to check if not in createMode)
+	if (createMode) {
+		var duplicateCollection = 0;
+		collections.forEach( (collection) => {
+			if (collection.name == collectionName) {
+				duplicateCollection = 1;
 			}
 		});
-		return;
+		if (duplicateCollection == 1) {
+			response.render('collectionDetails', {
+				title: title,
+				createMode: createMode,
+				collectionName: collectionName,
+				errors: {
+					secret: {
+						msg: 'This collection already exists'
+					}
+				}
+			});
+			return;
+		}
 	}
 
-	console.log('API key is ok, authentication succeded');
+	console.log('Validation checks are ok, API key is ok, authentication succeded');
 
 	// filter error messages in properties... a bit artificial TODO
 	shortPropertiesList = shortPropertiesList.filter(prop => !prop.match(/ERR_/));
 	longPropertiesList = longPropertiesList.filter(prop => !prop.match(/ERR_/));
 
-	var newCollection = {};
-	newCollection.name = collectionName;
-	newCollection.shortProperties = shortPropertiesList;
-	newCollection.longProperties = longPropertiesList;
-	newCollection.items = [];	// empty array
-	newCollection.lastitemid = 0;
+	if (createMode) {
+		var newCollection = {};
+		newCollection.name = collectionName;
+		newCollection.shortProperties = shortPropertiesList;
+		newCollection.longProperties = longPropertiesList;
+		newCollection.items = [];	// empty array
+		newCollection.lastitemid = 0;
 
-	collections.push(newCollection);
+		collections.push(newCollection);
+	}
+	else {
+		collections.forEach( (collection) => {
+			if (collection.name == collectionName) {
+				collection.shortProperties = collection.shortProperties.concat(shortPropertiesList);
+				collection.longProperties = collection.longProperties.concat(longPropertiesList);
+				collection.items.forEach ( (collItem) => {
+					shortPropertiesList.forEach( (sp) => collItem.sp = '');
+					longPropertiesList.forEach( (lp) => collItem.lp = '');
+				});
+			}
+		});
+	}
+
 	db.saveToDbFile();
 
-	request.flash('success', 'Collection added');
+	if (createMode) {
+		request.flash('success', 'Collection added');
+	}
+	else {
+		request.flash('success', 'New properties added to '+collectionName);
+	}
 	response.render('index', {
 		collections: collections
 	});
