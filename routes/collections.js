@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const flash = require('connect-flash');
@@ -48,6 +49,23 @@ router.get('/writeCollection', (request, response) => {
 		title: 'Insert new collection',
 		createMode: 1
 	});
+});
+
+router.get('/export', (request, response) => {
+	response.send(collections);
+	//response.sendFile(path.join(__dirname, '../'+db.dbFile));
+});
+
+router.get('/export/:name', (request, response) => {
+	var found = 0;
+	collections.forEach( (collection) => {
+		if (collection.name == request.params.name) {
+			found = 1;
+			response.send(collection);
+			return;
+		}
+	});
+	if (!found) response.status(404).send('Not found');
 });
 
 // Modify collection's properties
