@@ -40,7 +40,7 @@ app.use(function (req, res, next) {
 });
 
 // set public folder
-app.use(express.static(path.join(__dirname, 'public')));
+//app.use(express.static(path.join(__dirname, 'public')));
 
 // Load view engine
 app.set('views', path.join(__dirname, 'views'));
