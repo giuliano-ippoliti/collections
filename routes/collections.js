@@ -6,6 +6,7 @@ const session = require('express-session');
 const { check, validationResult } = require('express-validator');
 
 const db = require('../storage/dbfile');
+const text = require('../lang/text');
 
 const router = express.Router();
 

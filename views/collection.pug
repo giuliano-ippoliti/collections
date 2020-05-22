@@ -5,13 +5,13 @@ block content
   if editMode
     h2 Edit mode (click on items id to edit)
   br
-  h5 Items list
+  h5 Liste des éléments
   
   each item in collection.items
     table(style='width:100%', border='1').table-striped.table-bordered.table-hover.table-condensed
       tr
-        th(style="width:20%") Property
-        th(style="width:80%") Value
+        th(style="width:20%") Clé
+        th(style="width:80%") Valeur
       each key in Object.keys(item)
         if key === 'id'
           if editMode

@@ -13,7 +13,8 @@ const helmet = require('helmet');
 
 let coll = require('./routes/collections');
 const db = require('./storage/dbfile');
-
+const text = require('./lang/text');
+//console.log(text.text);
 var app = express();
 
 app.use(helmet());
@@ -40,7 +41,7 @@ app.use(function (req, res, next) {
 });
 
 // set public folder
-//app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Load view engine
 app.set('views', path.join(__dirname, 'views'));
