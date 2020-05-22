@@ -38,8 +38,14 @@ const sanitizeProperties = (inputProperties) => {
 // GET routes
 
 // Homepage
-router.get('/', (request, response) => {
+router.get('/collections', (request, response) => {
 	response.render('index', {
+		collections: collections
+	});
+});
+
+router.get('/', (request, response) => {
+	response.render('homepage', {
 		collections: collections
 	});
 });
