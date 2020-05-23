@@ -21,6 +21,7 @@ jsconfig.json
 *.key
 collections.json
 collectionsTest.json
+views/homepage.pug
 volumes/
 
 ### OS generated files ####

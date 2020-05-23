@@ -21,8 +21,13 @@ block content
                 a.btn.bg-primary.text-white(href="/modify/"+collection.name+"/"+item[key]) #{item[key]}
         else
           tr
+            - var isLink = item[key].match(/^https?:\/\//)
             td #{key}
-            td #{item[key]}
+            if isLink
+              td
+                a(href=item[key]) #{item[key]}
+            else
+              td #{item[key]}
     br
 
   hr
