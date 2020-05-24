@@ -1,6 +1,8 @@
 # collections
 Webapp for managing collections of items, written for learning purposes (Node.js, HTML, Javascript, JSON, Docker, Kubernetes, public cloud, OWASP best practices, identity management, ...), and as a sort of backend for my personal website.
 
+The "database" for storing information is a JSON file.
+
 Not ready for prod yet: security improvement in progress.
 
 ## Localhost install
