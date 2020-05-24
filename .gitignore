@@ -33,3 +33,5 @@ volumes/
 ehthumbs.db
 Thumbs.db
 
+.env
+views/homepage.pug
