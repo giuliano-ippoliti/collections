@@ -1,44 +1,45 @@
 extends layout
 
 block content
-  h1.mark= collection.name
-  if editMode
-    h2 Edit mode (click on items id to edit)
-  br
-  h5 Liste des éléments
-  
-  each item in collection.items
-    table(style={'width': '100%', 'table-layout': 'fixed'}, border='1').table-striped.table-bordered.table-hover.table-condensed
-      tr
-        th(style="width:20%") Clé
-        th(style="width:80%") Valeur
-      each key in Object.keys(item)
-        if key === 'id'
-          if editMode
-            tr
-              td #{key}
-              td
-                a.btn.bg-primary.text-white(href="/modify/"+collection.name+"/"+item[key]) #{item[key]}
-        else
-          tr
-            - var isLink = item[key].match(/^https?:\/\//)
-            td #{key}
-            if isLink
-              td
-                a(href=item[key] target="_blank") #{item[key]}
-            else
-              td(style="white-space:pre-wrap") #{item[key]}
+  .container
+    h1.mark= collection.name
+    if editMode
+      h2 Edit mode (click on items id to edit)
     br
+    h5 Liste des éléments
+    
+    each item in collection.items
+      table(style={'width': '100%'}, border='1').table-striped.table-bordered.table-hover.table-condensed
+        tr
+          th(style="width:20%") Clé
+          th(style="width:80%") Valeur
+        each key in Object.keys(item)
+          if key === 'id'
+            if editMode
+              tr
+                td(style="white-space:pre-wrap") #{key}
+                td(style="white-space:pre-wrap")
+                  a.btn.bg-primary.text-white(href="/modify/"+collection.name+"/"+item[key]) #{item[key]}
+          else
+            tr
+              - var isLink = item[key].match(/^https?:\/\//)
+              td(style="white-space:pre-wrap") #{key}
+              if isLink
+                td
+                  a(href=item[key] target="_blank") #{item[key]}
+              else
+                td(style="white-space:pre-wrap") #{item[key]}
+      br
 
-  hr
-  a.btn.bg-primary.mr-1.text-white(href="/add/"+collection.name) Add item
-  a.btn.bg-primary.mr-1.text-white(href="/edit/"+collection.name) Edit collection's items
-  a.btn.bg-primary.mr-1.text-white(href="/change/"+collection.name) Add new properties
-  a.btn.bg-primary.mr-1.text-white(href="/export/"+collection.name) Export in JSON
-  a.btn.bg-danger.mr-1.text-white(href="/delete/"+collection.name) Delete collection
-  br
-  br
-  a.btn.bg-info.mr-1.text-white(href="/") Home
-  a.btn.bg-info.mr-1.text-white(href="/collections") Collections
-  br
-  br
+    hr
+    a.btn.bg-primary.mr-1.text-white(href="/add/"+collection.name) Add item
+    a.btn.bg-primary.mr-1.text-white(href="/edit/"+collection.name) Edit collection's items
+    a.btn.bg-primary.mr-1.text-white(href="/change/"+collection.name) Add new properties
+    a.btn.bg-primary.mr-1.text-white(href="/export/"+collection.name) Export in JSON
+    a.btn.bg-danger.mr-1.text-white(href="/delete/"+collection.name) Delete collection
+    br
+    br
+    a.btn.bg-info.mr-1.text-white(href="/") Home
+    a.btn.bg-info.mr-1.text-white(href="/collections") Collections
+    br
+    br

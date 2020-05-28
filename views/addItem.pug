@@ -1,27 +1,28 @@
 extends layout
 
 block content
-  h1.mark= collection.name
-  br
-  h5 Insert item:
-  
-  form(method='POST',action='/add/'+collection.name)
-    each prop in collection.shortProperties
-      label #{prop}:
-      input.form-control(name=prop, type='text')
-      br
-    each prop in collection.longProperties
-      label #{prop}:
-      textarea.form-control(name=prop)
-      br
-    label Secret:
-    input.form-control(name='secret', type='password')
+  .container
+    h1.mark= collection.name
     br
-    input.btn.btn-primary(type='submit',value='Add item')
+    h5 Insert item:
+    
+    form(method='POST',action='/add/'+collection.name)
+      each prop in collection.shortProperties
+        label #{prop}:
+        input.form-control(name=prop, type='text')
+        br
+      each prop in collection.longProperties
+        label #{prop}:
+        textarea.form-control(name=prop)
+        br
+      label Secret:
+      input.form-control(name='secret', type='password')
+      br
+      input.btn.btn-primary(type='submit',value='Add item')
 
-  br
-  br
-  a.btn.bg-info.mr-1.text-white(href="/") Home
-  a.btn.bg-info.mr-1.text-white(href="/show/"+collection.name) Back
-  br
-  br
+    br
+    br
+    a.btn.bg-info.mr-1.text-white(href="/") Home
+    a.btn.bg-info.mr-1.text-white(href="/show/"+collection.name) Back
+    br
+    br

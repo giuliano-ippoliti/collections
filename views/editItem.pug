@@ -1,28 +1,29 @@
 extends layout
 
 block content
-  h1.mark= collection.name
-  br
-  h5 Edit item:
-  
-  form(method='POST',action="/modify/"+collection.name+"/"+item.id)
-    each shortProperty in collection.shortProperties
-      li #{shortProperty}:
-          input.form-control(name=shortProperty, type='text', value=item[shortProperty])
-    each longProperty in collection.longProperties
-      li #{longProperty}:
-          textarea.form-control(name=longProperty)= item[longProperty]
-    li Secret:
-    input.form-control(name='secret', type='password')
+  .container
+    h1.mark= collection.name
     br
-    p
-      input.btn.btn-primary(type='submit',name='_btn',value='Save')
-    p
-      input.btn.btn-danger(type='submit',name='_btn',value='Delete')
-  
-  br
-  br
-  a.btn.bg-info.mr-1.text-white(href="/") Home
-  a.btn.bg-info.text-white(href="/edit/"+collection.name) Back
-  br
-  br
+    h5 Edit item:
+    
+    form(method='POST',action="/modify/"+collection.name+"/"+item.id)
+      each shortProperty in collection.shortProperties
+        li #{shortProperty}:
+            input.form-control(name=shortProperty, type='text', value=item[shortProperty])
+      each longProperty in collection.longProperties
+        li #{longProperty}:
+            textarea.form-control(name=longProperty)= item[longProperty]
+      li Secret:
+      input.form-control(name='secret', type='password')
+      br
+      p
+        input.btn.btn-primary(type='submit',name='_btn',value='Save')
+      p
+        input.btn.btn-danger(type='submit',name='_btn',value='Delete')
+    
+    br
+    br
+    a.btn.bg-info.mr-1.text-white(href="/") Home
+    a.btn.bg-info.text-white(href="/edit/"+collection.name) Back
+    br
+    br

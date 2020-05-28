@@ -1,17 +1,18 @@
 extends layout
 
 block content
-    h1.mark Delete #{collection} ?
+    .container
+        h1.mark Delete #{collection} ?
 
-    form(method='POST',action='/delete/'+collection)
-        br
-        li Secret:
-        input.form-control(name='secret', type='password')
-        br
-        input.btn.btn-danger(type='submit',value='Confirm deletion')
+        form(method='POST',action='/delete/'+collection)
+            br
+            li Secret:
+            input.form-control(name='secret', type='password')
+            br
+            input.btn.btn-danger(type='submit',value='Confirm deletion')
 
-    br
-    a.btn.bg-info.mr-1.text-white(href="/") Home
-    a.btn.bg-info.mr-1.text-white(href="/show/"+collection) Back
-    br
-    br
+        br
+        a.btn.bg-info.mr-1.text-white(href="/") Home
+        a.btn.bg-info.mr-1.text-white(href="/show/"+collection) Back
+        br
+        br

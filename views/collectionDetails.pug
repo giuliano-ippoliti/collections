@@ -1,37 +1,38 @@
 extends layout
 
 block content
-  h1.mark= title
-  br
-  h5 Collection specification:
-  
-  form(method='POST',action='/writeCollection')
-    if createMode
-      li Name:
-      input.form-control(name='name', type='text')
-      li Short-text properties (comma-separated list):
-      input.form-control(name='shortProperties', type='text')
-      li Long-text properties (comma-separated list):
-      input.form-control(name='longProperties', type='text')
-      li Secret:
-      input.form-control(name='secret', type='password')
-      br
-      input.btn.btn-primary(type='submit',name='_btn',value='Add')
-    else
-      li Name:
-      input.form-control(name='name', type='text', value=collectionName, readonly)
-      li Short-text properties (comma-separated list):
-      input.form-control(name='shortProperties', type='text')
-      li Long-text properties (comma-separated list):
-      input.form-control(name='longProperties', type='text')
-      li Secret:
-      input.form-control(name='secret', type='password')
-      br
-      input.btn.btn-primary(type='submit',name='_btn',value='Modify')
+  .container
+    h1.mark= title
+    br
+    h5 Collection specification:
+    
+    form(method='POST',action='/writeCollection')
+      if createMode
+        li Name:
+        input.form-control(name='name', type='text')
+        li Short-text properties (comma-separated list):
+        input.form-control(name='shortProperties', type='text')
+        li Long-text properties (comma-separated list):
+        input.form-control(name='longProperties', type='text')
+        li Secret:
+        input.form-control(name='secret', type='password')
+        br
+        input.btn.btn-primary(type='submit',name='_btn',value='Add')
+      else
+        li Name:
+        input.form-control(name='name', type='text', value=collectionName, readonly)
+        li Short-text properties (comma-separated list):
+        input.form-control(name='shortProperties', type='text')
+        li Long-text properties (comma-separated list):
+        input.form-control(name='longProperties', type='text')
+        li Secret:
+        input.form-control(name='secret', type='password')
+        br
+        input.btn.btn-primary(type='submit',name='_btn',value='Modify')
 
-  br
-  br
-  a.btn.bg-info.mr-1.text-white(href="/") Home
-  a.btn.bg-info.mr-1.text-white(href="/collections") Collections
-  br
-  br
+    br
+    br
+    a.btn.bg-info.mr-1.text-white(href="/") Home
+    a.btn.bg-info.mr-1.text-white(href="/collections") Collections
+    br
+    br
