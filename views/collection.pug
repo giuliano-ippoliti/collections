@@ -6,8 +6,6 @@ block content
     if editMode
       h2 Edit mode (click on items id to edit)
     br
-    h5 Liste des éléments
-    
     each item in collection.items
       table(style={'width': '100%'}, border='1').table-striped.table-bordered.table-hover.table-condensed
         tr
@@ -23,10 +21,14 @@ block content
           else
             tr
               - var isLink = item[key].match(/^https?:\/\//)
+              - var isImage = key.match(/^image$/)
               td(style="white-space:pre-wrap") #{key}
               if isLink
-                td
+                td(style="white-space:pre-wrap")
                   a(href=item[key] target="_blank") #{item[key]}
+              else if isImage
+                td(style="white-space:pre-wrap")
+                  img(src="/images/"+item[key])
               else
                 td(style="white-space:pre-wrap") #{item[key]}
       br
