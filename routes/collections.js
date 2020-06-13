@@ -38,14 +38,26 @@ const sanitizeProperties = (inputProperties) => {
 // GET routes
 
 // Homepage
-router.get('/collections', (request, response) => {
-	response.render('index', {
+router.get('/', (request, response) => {
+	response.render('homepage', {
 		collections: collections
 	});
 });
 
-router.get('/', (request, response) => {
-	response.render('homepage', {
+router.get('/pro', (request, response) => {
+	response.render('pro', {
+		collections: collections
+	});
+});
+
+router.get('/perso', (request, response) => {
+	response.render('perso', {
+		collections: collections
+	});
+});
+
+router.get('/collections', (request, response) => {
+	response.render('index', {
 		collections: collections
 	});
 });

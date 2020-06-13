@@ -56,30 +56,6 @@ const PORT = process.env.PORT;
 global.SECRET = process.env.SECRET;
 
 global.collections = [];
-// structure for storing the collections:
-// - collections (array of {name:, properties:, items:})
-// [
-//   {
-//     "name": "collection1",		// unique
-//     "properties": [
-//       "p1", "p2", "p3"
-//     ],
-//     "items": [
-//       {
-//         "id": "1",
-//         "p1": "val1",
-//         "p2": "val2"
-//       },
-//       {
-//         "id": "2",
-//         "p1": "val3",
-//         "p2": "val4"
-//       }
-//     ],
-//     "lastitemid": "2",
-//   },
-//   ...
-// ]
 
 // Loading items from Db file at startup
 // TODO: Try catch
@@ -97,6 +73,10 @@ if (exists) {
 }
 
 app.use('/', coll);
+
+app.use(function(req, res, next) {
+	res.status(404).render('404');
+});
 
 // listen for requests
 var listener = app.listen(PORT, () => {
