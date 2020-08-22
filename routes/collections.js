@@ -44,27 +44,6 @@ router.get('/', (request, response) => {
 	});
 });
 
-router.get('/pro', (request, response) => {
-	response.render('pro', {
-		collections: collections
-	});
-});
-
-router.get('/perso', (request, response) => {
-	response.render('perso', {
-		collections: collections
-	});
-});
-
-router.get('/ressources', (request, response) => {
-	response.render('ressources', {});
-});
-
-// Pages dans ressources (peut-être mieux de mettre en statique)
-router.get('/AZ500', (request, response) => {
-	response.render('AZ500', {});
-});
-
 // Gestion des collections
 router.get('/collections', ensureAuthenticated, (request, response) => {
 	if (request.query.ok) {
