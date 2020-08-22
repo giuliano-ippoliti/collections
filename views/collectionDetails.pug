@@ -5,28 +5,30 @@ block content
     h1.mark= title
     br
     h5 Collection specification:
-    
+         
+    //- createMode => create collection
+    //- !createMode => add new properties
     form(method='POST',action='/writeCollection')
       if createMode
         li Name:
         input.form-control(name='name', type='text')
+        li Display name:
+        input.form-control(name='displayName', type='text')
         li Short-text properties (comma-separated list):
-        input.form-control(name='shortProperties', type='text')
+        input.form-control(name='shortProperties', type='text', value=mandatory)
         li Long-text properties (comma-separated list):
         input.form-control(name='longProperties', type='text')
-        li Secret:
-        input.form-control(name='secret', type='password')
         br
         input.btn.btn-primary(type='submit',name='_btn',value='Add')
       else
         li Name:
         input.form-control(name='name', type='text', value=collectionName, readonly)
+        li Display name:
+        input.form-control(name='displayName', type='text', value=displayName, readonly)
         li Short-text properties (comma-separated list):
         input.form-control(name='shortProperties', type='text')
         li Long-text properties (comma-separated list):
         input.form-control(name='longProperties', type='text')
-        li Secret:
-        input.form-control(name='secret', type='password')
         br
         input.btn.btn-primary(type='submit',name='_btn',value='Modify')
 

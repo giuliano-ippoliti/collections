@@ -56,26 +56,43 @@ router.get('/perso', (request, response) => {
 	});
 });
 
-router.get('/collections', (request, response) => {
+router.get('/ressources', (request, response) => {
+	response.render('ressources', {});
+});
+
+// Pages dans ressources (peut-être mieux de mettre en statique)
+router.get('/AZ500', (request, response) => {
+	response.render('AZ500', {});
+});
+
+// Gestion des collections
+router.get('/collections', ensureAuthenticated, (request, response) => {
+	if (request.query.ok) {
+		request.flash('success', request.query.ok);
+	}
+	if (request.query.ko) {
+		request.flash('danger', request.query.ko);
+	}
 	response.render('index', {
 		collections: collections
 	});
 });
 
 // New collection
-router.get('/writeCollection', (request, response) => {
+router.get('/writeCollection', ensureAuthenticated, (request, response) => {
 	response.render('collectionDetails', {
 		title: 'Insert new collection',
-		createMode: 1
+		createMode: 1,
+		mandatory: MANDATORY_COLLECTION_PROPERTY
 	});
 });
 
-router.get('/export', (request, response) => {
+router.get('/export', ensureAuthenticated, (request, response) => {
 	response.send(collections);
 	//response.sendFile(path.join(__dirname, '../'+db.dbFile));
 });
 
-router.get('/export/:name', (request, response) => {
+router.get('/export/:name', ensureAuthenticated, (request, response) => {
 	var found = 0;
 	collections.forEach( (collection) => {
 		if (collection.name == request.params.name) {
@@ -88,18 +105,26 @@ router.get('/export/:name', (request, response) => {
 });
 
 // Modify collection's properties
-router.get('/change/:name', (request, response) => {
+router.get('/change/:name', ensureAuthenticated, (request, response) => {
 	const collectionName = request.params.name;
+
+	var displayName = "";
+	collections.forEach( (collection) => {
+		if (collection.name == request.params.name) {
+			displayName = collection.displayName;
+		}
+	});
 
 	response.render('collectionDetails', {
 		title: 'Add new properties for '+collectionName,
 		collectionName: collectionName,
+		displayName: displayName,
 		createMode: 0
 	});
 });
 
 // Add item into a collection
-router.get('/add/:name', (request, response) => {
+router.get('/add/:name', ensureAuthenticated, (request, response) => {
 	collections.forEach( (collection) => {
 		if (collection.name == request.params.name) {
 			response.render('addItem', {
@@ -111,9 +136,34 @@ router.get('/add/:name', (request, response) => {
 
 // Display a collection
 router.get('/show/:name', (request, response) => {
+	var fullDisplay = 0;
+
+	if (request.isAuthenticated()) {
+		fullDisplay = 1;
+	}
+
+	if (request.query.ok) {
+		request.flash('success', request.query.ok);
+	}
+	if (request.query.ko) {
+		request.flash('danger', request.query.ko);
+	}
+
 	collections.forEach( (collection) => {
 		if (collection.name == request.params.name) {
-			response.render('collection', {
+			response.render('collectionDynamic', {
+				collection: collection,
+				fullDisplay: fullDisplay
+			});
+		}
+	});
+});
+
+// Display a collection with DataTable
+router.get('/showStatic/:name', ensureAuthenticated, (request, response) => {
+	collections.forEach( (collection) => {
+		if (collection.name == request.params.name) {
+			response.render('collectionStatic', {
 				collection: collection,
 				editMode: 0
 			});
@@ -122,10 +172,10 @@ router.get('/show/:name', (request, response) => {
 });
 
 // Display a collection in edit mode (ids are shown and clickable)
-router.get('/edit/:name', (request, response) => {
+router.get('/edit/:name', ensureAuthenticated, (request, response) => {
 	collections.forEach( (collection) => {
 		if (collection.name == request.params.name) {
-			response.render('collection', {
+			response.render('collectionStatic', {
 				collection: collection,
 				editMode: 1
 			});
@@ -133,15 +183,8 @@ router.get('/edit/:name', (request, response) => {
 	});
 });
 
-// Display form for deleting a collection
-router.get('/delete/:name', (request, response) => {
-	response.render('deleteCollection', {
-		collection: request.params.name
-	});
-});
-
 // Display form for modifying an item
-router.get('/modify/:name/:id', (request, response) => {
+router.get('/modify/:name/:id', ensureAuthenticated, (request, response) => {
 	const collectionName = request.params.name;
 	const itemId = request.params.id;
 
@@ -165,41 +208,33 @@ router.get('/modify/:name/:id', (request, response) => {
 // POST routes
 
 // Delete a collection
-router.post('/delete/:name', (request, response) => {
-    const secret = request.body.secret;
+router.delete('/delete/:name', ensureAuthenticated, (request, response) => {
     const collectionName = request.params.name;
-
-    // check secret
-    if (secret != SECRET) {
-        response.render('deleteCollection', {
-            collection: collectionName,
-            errors: {
-                secret: {
-                    msg: 'Invalid secret'
-                }
-            }
-		});
-		return;
-    }
 
 	var filteredCollections = collections.filter(collection => collection.name != collectionName);
 
 	collections = filteredCollections;
 	db.saveToDbFile();
-	request.flash('success', 'Collection deleted');
-	response.redirect('/');
 
+	response.sendStatus(200);
 });
 
 // Add a new collection, or change its properties
+// TODO : nettoyer et pousser sur github
+// TODONICE : put pour modifier collection
 router.post('/writeCollection', [
 	check('name').isLength({min:1}).withMessage('Name required for the new collection'),
 	], (request, response) => {
 	const collectionName = request.body.name;
-	const secret = request.body.secret;
+	const displayName = request.body.displayName;
 	const shortInputProperties = request.body.shortProperties;
 	const longInputProperties = request.body.longProperties;
 	const formAction = request.body._btn;   // Add or Modify
+
+	if (!request.isAuthenticated()) {
+		response.sendStatus(403);
+		return;
+	}
 
 	var createMode = 0;
 	var title = 'Add new properties for '+collectionName;
@@ -219,25 +254,25 @@ router.post('/writeCollection', [
 		return;
 	}
 
-	if (secret != SECRET) {
+	// Process properties
+	var shortPropertiesList = sanitizeProperties(shortInputProperties);
+	var longPropertiesList = sanitizeProperties(longInputProperties);
+
+	if (createMode && (!shortPropertiesList.find(elem => elem === MANDATORY_COLLECTION_PROPERTY))) {
 		response.render('collectionDetails', {
 			title: title,
 			createMode: createMode,
 			collectionName: collectionName,
+			mandatory: MANDATORY_COLLECTION_PROPERTY,
 			errors: {
 				secret: {
-					msg: 'Invalid secret'
+					msg: 'You must declare at least one short property named "' + MANDATORY_COLLECTION_PROPERTY + '"'
 				}
 			}
 		});
 		return;
 	}
-
-	// Process properties
-	var shortPropertiesList = sanitizeProperties(shortInputProperties);
-	var longPropertiesList = sanitizeProperties(longInputProperties);
-
-	if ((shortPropertiesList[0] == 'ERR_Empty') && (longPropertiesList[0] == 'ERR_Empty')) {
+	else if ((shortPropertiesList[0] == 'ERR_Empty') && (longPropertiesList[0] == 'ERR_Empty')) {
 		response.render('collectionDetails', {
 			title: title,
 			createMode: createMode,
@@ -354,6 +389,7 @@ router.post('/writeCollection', [
 	if (createMode) {
 		var newCollection = {};
 		newCollection.name = collectionName;
+		newCollection.displayName = displayName;
 		newCollection.shortProperties = shortPropertiesList;
 		newCollection.longProperties = longPropertiesList;
 		newCollection.items = [];	// empty array
@@ -364,6 +400,7 @@ router.post('/writeCollection', [
 	else {
 		collections.forEach( (collection) => {
 			if (collection.name == collectionName) {
+				collection.displayName = displayName;
 				collection.shortProperties = collection.shortProperties.concat(shortPropertiesList);
 				collection.longProperties = collection.longProperties.concat(longPropertiesList);
 				collection.items.forEach ( (collItem) => {
@@ -392,6 +429,11 @@ router.post('/add/:name', [
 	check('*').isLength({min:1}).withMessage('Value required'),
 	], (request, response) => {
 
+	if (!request.isAuthenticated()) {
+		response.sendStatus(403);
+		return;
+	}
+
 	const collectionName = request.params.name;
 
 	let thisCollection = {};
@@ -416,43 +458,29 @@ router.post('/add/:name', [
 		});
 	}
 	else {
-		// check secret
-		if (request.body.secret != SECRET) {
-			response.render('addItem', {
-				collection: thisCollection,
-				errors: {
-					secret: {
-						msg: 'Invalid secret'
-					}
-				}
-			});
-		}
-		else {
-			console.log('API key is ok, authentication succeded');
-			let newItem = {};
+		let newItem = {};
 
-			for (let [key, value] of Object.entries(request.body)) {
-				if (key != 'secret') {
-					newItem[key] = value;
-				}
+		for (let [key, value] of Object.entries(request.body)) {
+			if (key != 'secret') {
+				newItem[key] = value;
 			}
-
-			// look for the right collection
-			collections.forEach( (collection) => {
-				if (collection.name == collectionName) {
-					newItem.id = collection.lastitemid + 1;
-					collection.lastitemid += 1;
-					collection.items.push(newItem);		// TODO more verifications (API abuse)
-					// TODO: Save file before sending the response ? If so then async
-					db.saveToDbFile();
-
-                    request.flash('success', 'Item added');
-					response.render('collection', {
-						collection: collection
-					});
-				}
-			});
 		}
+
+		// look for the right collection
+		collections.forEach( (collection) => {
+			if (collection.name == collectionName) {
+				newItem.id = collection.lastitemid + 1;
+				collection.lastitemid += 1;
+				collection.items.push(newItem);		// TODO more verifications (API abuse)
+				db.saveToDbFile();
+
+				request.flash('success', 'Item added');
+				response.render('collectionDynamic', {
+					collection: collection,
+					fullDisplay: 1
+				});
+			}
+		});
 	}  
 });
 
@@ -461,10 +489,15 @@ router.post('/modify/:name/:id', [
 	check('*').isLength({min:1}).withMessage('Value required'),
 	], (request, response) => {
 
+	if (!request.isAuthenticated()) {
+		response.sendStatus(403);
+		return;
+	}
+
 	const collectionName = request.params.name;
 	const itemId = request.params.id;
 	const newItem = request.body;           //it includes the name of the button (_btn)
-    const formAction = request.body._btn;   // Save or Delete
+    //const formAction = request.body._btn;   // Save or Delete
 
 	let thisCollection = {};
 	let thisItem = {};
@@ -495,55 +528,75 @@ router.post('/modify/:name/:id', [
 		});
 	}
 	else {
-		// check secret
-		if (request.body.secret != SECRET) {
-			response.render('editItem', {
-				collection: thisCollection,
-				item: thisItem,
-				errors: {
-					secret: {
-						msg: 'Invalid secret'
+		// look for the specific item
+		collections.forEach( (collection) => {
+			if (collection.name == collectionName) {
+				collection.items.forEach ( (collItem) => {
+					if (collItem.id == itemId) {
+						// specific item found, loop through properties (expected for id)
+						for (prop in collItem) {
+							if (prop == "id") { continue; };	// do not touch the "id" property
+							collItem[prop] = newItem[prop];
+						}
+
+						db.saveToDbFile();
+						request.flash('success', 'Item modified');
+						response.render('collectionStatic', {
+							collection: collection
+						});
 					}
-				}
-			});
-		}
-		else {
-			console.log('API key is ok, authentication succeded');
-
-			// look for the specific item
-			collections.forEach( (collection) => {
-				if (collection.name == collectionName) {
-                    if (formAction == 'Save') {
-                        collection.items.forEach ( (collItem) => {
-                            if (collItem.id == itemId) {
-                                // specific item found, loop through properties (expected for id)
-                                for (prop in collItem) {
-                                    if (prop == "id") { continue; };	// do not touch the "id" property
-                                    collItem[prop] = newItem[prop];
-                                }
-
-                                db.saveToDbFile();
-                                request.flash('success', 'Item modified');
-                                response.render('collection', {
-                                    collection: collection
-                                });
-                            }
-                        });
-                    }
-                    else {          // Delete
-                        let filteredItems = collection.items.filter(item => item.id != itemId);
-                        collection.items = filteredItems;
-
-                        db.saveToDbFile();
-                        request.flash('success', 'Item deleted');
-                        response.render('collection', {
-                            collection: collection
-                        });
-                    }
-				}
-			});
-		}
+				});
+			}
+		});
 	}
 });
+
+router.delete('/modify/:name/:id', ensureAuthenticated, (request, response) => {
+	const collectionName = request.params.name;
+	const itemId = request.params.id;
+
+	let thisCollection = {};
+	let thisItem = {};
+
+	// prevent API abuse : check existence of collection and item
+	// TODO on peut mieux faire
+	collections.forEach( (collection) => {
+		if (collection.name == collectionName) {
+			thisCollection = collection;
+			collection.items.forEach ( (collItem) => {
+				if (collItem.id == itemId) {
+					thisItem = collItem;
+				}
+			});
+		}
+	});
+	if ((Object.keys(thisCollection).length === 0) || (Object.keys(thisItem).length === 0))  {
+		response.status(404).send('Not found');
+	}
+
+	// look for the specific item
+	collections.forEach( (collection) => {
+		if (collection.name == collectionName) {
+			// Delete
+			let filteredItems = collection.items.filter(item => item.id != itemId);
+			collection.items = filteredItems;
+
+			db.saveToDbFile();
+
+			response.sendStatus(200);
+		}
+	});
+});
+
+// Access controls
+function ensureAuthenticated(req, res, next){
+	if(req.isAuthenticated()){
+		return next();
+	}
+	else {
+		req.flash('danger', 'Please login');
+		res.redirect('/users/login');
+	}
+}
 
 module.exports = router;

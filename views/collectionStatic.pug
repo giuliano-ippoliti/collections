@@ -1,0 +1,51 @@
+extends layout
+
+block content
+  .container
+    h1.mark= collection.name
+    if editMode
+      h2 Edit mode (click on items id to edit)
+    br
+    each item in collection.items
+      - var tableId = item['id'];
+      table(style={'width': '100%'}, border='1').table-striped.table-bordered.table-hover.table-condensed&attributes({'id': tableId})
+        thead
+          tr
+            th(style="width:20%") Clé
+            th(style="width:80%") Valeur
+        tbody
+          each key in Object.keys(item)
+            if key === 'id'
+              if editMode
+                tr
+                  td(style="white-space:pre-wrap") #{key}
+                  td(style="white-space:pre-wrap")
+                    a.btn.bg-primary.text-white(href="/modify/"+collection.name+"/"+item[key]) #{item[key]}
+            else
+              tr
+                - var isLink = item[key].match(/^https?:\/\//)
+                - var isImage = key.match(/^(image|photo)/)
+                td(style="white-space:pre-wrap") #{key}
+                if isLink
+                  td(style="white-space:pre-wrap")
+                    a(href=item[key] target="_blank") #{item[key]}
+                else if isImage
+                  td(style="white-space:pre-wrap")
+                    img(src="/images/"+item[key])
+                else
+                  td(style="white-space:pre-wrap") #{item[key]}
+      br
+
+    hr
+    a.btn.bg-primary.mr-1.text-white(href="/add/"+collection.name) Add item
+    a.btn.bg-primary.mr-1.text-white(href="/edit/"+collection.name) Edit collection's items
+    a.btn.bg-primary.mr-1.text-white(href="/change/"+collection.name) Add new properties
+    a.btn.bg-primary.mr-1.text-white(href="/export/"+collection.name) Export in JSON
+    //-a.btn.bg-danger.mr-1.text-white(href="/delete/"+collection.name) Delete collection
+    a.btn.bg-danger.mr-1.text-white.delete-collection(href='#',collectionName=collection.name) Delete collection
+    br
+    br
+    a.btn.bg-info.mr-1.text-white(href="/") Home
+    a.btn.bg-info.mr-1.text-white(href="/collections") Collections
+    br
+    br

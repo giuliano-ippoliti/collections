@@ -1,7 +1,7 @@
 // server.js
 // where the node app starts
 
-const fs = require('fs');
+const fs = require('fs').promises;
 const path = require('path');
 const dotenv = require('dotenv');
 const express = require('express');
@@ -10,11 +10,29 @@ const flash = require('connect-flash');
 const session = require('express-session');
 const { check, validationResult } = require('express-validator');
 const helmet = require('helmet');
+const passport = require('passport');
 
 let coll = require('./routes/collections');
+let users = require('./routes/users');
 const db = require('./storage/dbfile');
 const text = require('./lang/text');
-//console.log(text.text);
+
+// Read environment varibale in .env (PORT, ...)
+dotenv.config();
+
+// From .env file
+const PORT = process.env.PORT;
+
+global.INVITATION_CODE = process.env.INVITATION_CODE;
+global.MANDATORY_COLLECTION_PROPERTY = process.env.MANDATORY_COLLECTION_PROPERTY;
+
+global.collections = [];
+global.registeredUsers = [];
+
+// load dbFile content for populating the collections array
+db.loadDbFile();
+db.loadUsersFile();
+
 var app = express();
 
 app.use(helmet());
@@ -47,32 +65,20 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
-// Read environment varibale in .env (PORT, ...)
-dotenv.config();
+// Passport config
+require('./config/passport')(passport);
 
-// From .env file
-const PORT = process.env.PORT;
+// Passport Middleware
+app.use(passport.initialize());
+app.use(passport.session());
 
-global.SECRET = process.env.SECRET;
-
-global.collections = [];
-
-// Loading items from Db file at startup
-// TODO: Try catch
-var exists = fs.existsSync(db.dbFile);
-if (exists) {
-	console.log('Database file is ready to go!');
-
-	// read db file for storage in items
-	// TODO: Try catch
-	// TODO: async ?
-	var contents = fs.readFileSync(db.dbFile);
-
-	// load items to items array
-	collections = JSON.parse(contents);
-}
+app.get('*', function(req, res, next){
+  res.locals.user = req.user || null;
+  next();
+});
 
 app.use('/', coll);
+app.use('/users', users);
 
 app.use(function(req, res, next) {
 	res.status(404).render('404');

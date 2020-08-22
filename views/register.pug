@@ -1,0 +1,32 @@
+extends layout
+
+block content
+  .container
+    h1.mark Register
+    form(method='POST',action='/users/register')
+      .form-group.row
+        .col-xs-2
+          label Name:
+          input.form-control(name='name', type='text')
+      .form-group.row
+        .col-xs-2
+          label Email:
+          input.form-control(name='email', type='text')
+      .form-group.row
+        .col-xs-2
+          label Username:
+          input.form-control(name='username', type='text')
+      .form-group.row
+        .col-xs-2
+          label Password:
+          input.form-control(name='password', type='password')
+      .form-group.row
+        .col-xs-2
+          label Confirm:
+          input.form-control(name='password2', type='password')
+      .form-group.row
+        .col-xs-2
+          label Invitation code:
+          input.form-control(name='invitation', type='password')
+      br
+      input.btn.btn-primary(type='submit',value='Submit')

@@ -1,0 +1,16 @@
+extends layout
+
+block content
+  .container
+    h1.mark Login
+    form(method='POST',action='/users/login')
+      .form-group.row
+        .col-xs-2
+          label Username:
+          input.form-control(name='username', type='text')
+      .form-group.row
+        .col-xs-2
+          label Password:
+          input.form-control(name='password', type='password')
+      br
+      input.btn.btn-primary(type='submit',value='Submit')

@@ -13,13 +13,11 @@ block content
       each longProperty in collection.longProperties
         li #{longProperty}:
             textarea.form-control(name=longProperty)= item[longProperty]
-      li Secret:
-      input.form-control(name='secret', type='password')
       br
       p
         input.btn.btn-primary(type='submit',name='_btn',value='Save')
       p
-        input.btn.btn-danger(type='submit',name='_btn',value='Delete')
+        a.btn.btn-danger.delete-item(href='#',itemId=item.id,collectionName=collection.name) Delete
     
     br
     br

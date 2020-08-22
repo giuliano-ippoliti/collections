@@ -1,0 +1,40 @@
+extends layout
+
+block content
+  .container
+    h1.mark= collection.displayName
+    br
+    label.switch
+      input(type='checkbox', id='expand', onclick="devAll()")
+      span.slider.round
+    label(for='expand').h5.badge Tout développer
+    br
+    br
+    table#collection.display(style='width:100%')
+      thead
+        tr
+          th
+          th nom
+      tfoot
+        tr
+          th
+          th nom
+
+    hr
+    if fullDisplay
+      a.btn.bg-primary.mr-1.text-white(href="/add/"+collection.name) Add item
+      a.btn.bg-primary.mr-1.text-white(href="/edit/"+collection.name) Edit collection's items
+      a.btn.bg-primary.mr-1.text-white(href="/change/"+collection.name) Add new properties
+      a.btn.bg-primary.mr-1.text-white(href="/export/"+collection.name) Export in JSON
+      //-a.btn.bg-danger.mr-1.text-white(href="/delete/"+collection.name) Delete collection
+      a.btn.bg-danger.mr-1.text-white.delete-collection(href='#',collectionName=collection.name) Delete collection
+      br
+      br
+    a.btn.bg-info.mr-1.text-white(href="/") Home
+    if fullDisplay
+      a.btn.bg-info.mr-1.text-white(href="/collections") Collections
+    br
+    br
+
+    //- script(src='../datatable/init.js')
+    script(src='../datatable/childrows.js', tabledata=collection.items, shortProperties=collection.shortProperties, longProperties=collection.longProperties)
