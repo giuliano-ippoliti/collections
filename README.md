@@ -13,13 +13,13 @@ Install Node.js
 
 `npm install`
 
-Set variables in .env file (PORT, SECRET) 
+Set variables in .env file (PORT, INVITATION_CODE) 
 
 `npm start`
 
 Go to http://localhost:8080/ (8080 is the default port)
 
-You can now start creating collections
+You have to register to start creating collections (use the invitation code in .env)
 
 ## Deploy to Azure
 
