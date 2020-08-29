@@ -1,38 +1,50 @@
-const path = require('path');
+/* eslint-disable linebreak-style */
+/* eslint-disable no-console */
+/* eslint-disable object-shorthand */
+/* eslint-disable indent */
+/* eslint-disable no-tabs */
+/* global collections, MANDATORY_COLLECTION_PROPERTY */
+/* eslint no-underscore-dangle: ["error", { "allow": ["_btn"] }] */
 const express = require('express');
-const bodyParser = require('body-parser');
-const flash = require('connect-flash');
-const session = require('express-session');
 const { check, validationResult } = require('express-validator');
 
 const db = require('../storage/dbfile');
-const text = require('../lang/text');
 
 const router = express.Router();
 
 // Functions
-const findDuplicates = arr => arr.filter((item, index) => arr.indexOf(item) != index);
+const findDuplicates = (arr) => arr.filter((item, index) => arr.indexOf(item) !== index);
 
 const sanitizeProperties = (inputProperties) => {
-	var properties = inputProperties.replace(/,\s+/g, ',');	// remove spaces after commas
+	let properties = inputProperties.replace(/,\s+/g, ',');	// remove spaces after commas
 	properties = properties.replace(/,+/g, ',');	// deduplicate multiple commas
 	properties = properties.replace(/,+$/, '');	// remove trailing comma
 
 	if (!properties) {
 		return ['ERR_Empty'];
 	}
-	else if (!properties.match(/^[0-9A-Za-zàâçéèêëîïôûùüÿñæœ,]+$/)) {
+	if (!properties.match(/^[0-9A-Za-zàâçéèêëîïôûùüÿñæœ,]+$/)) {
 		return ['ERR_InvalidChar'];
 	}
 
-	var propertiesList =  properties.split(',');
+	const propertiesList = properties.split(',');
 
-	var duplicatedItems = findDuplicates(propertiesList);
+	const duplicatedItems = findDuplicates(propertiesList);
 	if (duplicatedItems.length > 0) {
 		return ['ERR_DuplicatedItems'];
 	}
 
 	return propertiesList;
+};
+
+// Access controls
+function ensureAuthenticated(req, res, next) {
+	if (req.isAuthenticated()) {
+		return next();
+	}
+	req.flash('danger', 'Please login');
+	res.redirect('/users/login');
+	return null;
 }
 
 // GET routes
@@ -40,8 +52,29 @@ const sanitizeProperties = (inputProperties) => {
 // Homepage
 router.get('/', (request, response) => {
 	response.render('homepage', {
-		collections: collections
+		collections: collections,
 	});
+});
+
+router.get('/pro', (request, response) => {
+	response.render('pro', {
+		collections: collections,
+	});
+});
+
+router.get('/perso', (request, response) => {
+	response.render('perso', {
+		collections: collections,
+	});
+});
+
+router.get('/ressources', (request, response) => {
+	response.render('ressources', {});
+});
+
+// Pages dans ressources (peut-être mieux de mettre en statique)
+router.get('/AZ500', (request, response) => {
+	response.render('AZ500', {});
 });
 
 // Gestion des collections
@@ -53,7 +86,7 @@ router.get('/collections', ensureAuthenticated, (request, response) => {
 		request.flash('danger', request.query.ko);
 	}
 	response.render('index', {
-		collections: collections
+		collections: collections,
 	});
 });
 
@@ -62,60 +95,58 @@ router.get('/writeCollection', ensureAuthenticated, (request, response) => {
 	response.render('collectionDetails', {
 		title: 'Insert new collection',
 		createMode: 1,
-		mandatory: MANDATORY_COLLECTION_PROPERTY
+		mandatory: MANDATORY_COLLECTION_PROPERTY,
 	});
 });
 
 router.get('/export', ensureAuthenticated, (request, response) => {
 	response.send(collections);
-	//response.sendFile(path.join(__dirname, '../'+db.dbFile));
 });
 
 router.get('/export/:name', ensureAuthenticated, (request, response) => {
-	var found = 0;
-	collections.forEach( (collection) => {
-		if (collection.name == request.params.name) {
-			found = 1;
-			response.send(collection);
-			return;
-		}
-	});
-	if (!found) response.status(404).send('Not found');
+	const cIndex = collections.findIndex((collection) => collection.name === request.params.name);
+
+	if (cIndex === -1) {
+		response.status(404).render('404');
+	} else {
+		response.send(collections[cIndex]);
+	}
 });
 
 // Modify collection's properties
 router.get('/change/:name', ensureAuthenticated, (request, response) => {
-	const collectionName = request.params.name;
+	const cIndex = collections.findIndex((collection) => collection.name === request.params.name);
 
-	var displayName = "";
-	collections.forEach( (collection) => {
-		if (collection.name == request.params.name) {
-			displayName = collection.displayName;
-		}
-	});
+	if (cIndex === -1) {
+		response.status(404).render('404');
+	} else {
+		const collectionName = collections[cIndex].name;
+		const { displayName } = collections[cIndex];
 
-	response.render('collectionDetails', {
-		title: 'Add new properties for '+collectionName,
-		collectionName: collectionName,
-		displayName: displayName,
-		createMode: 0
-	});
+		response.render('collectionDetails', {
+			title: `Add new properties for ${collectionName}`,
+			collectionName: collectionName,
+			displayName: displayName,
+			createMode: 0,
+		});
+	}
 });
 
 // Add item into a collection
 router.get('/add/:name', ensureAuthenticated, (request, response) => {
-	collections.forEach( (collection) => {
-		if (collection.name == request.params.name) {
-			response.render('addItem', {
-				collection: collection
-			});
-		}
-	});
+	const cIndex = collections.findIndex((collection) => collection.name === request.params.name);
+	if (cIndex === -1) {
+		response.status(404).render('404');
+	} else {
+		response.render('addItem', {
+			collection: collections[cIndex],
+		});
+	}
 });
 
 // Display a collection
 router.get('/show/:name', (request, response) => {
-	var fullDisplay = 0;
+	let fullDisplay = 0;
 
 	if (request.isAuthenticated()) {
 		fullDisplay = 1;
@@ -128,38 +159,44 @@ router.get('/show/:name', (request, response) => {
 		request.flash('danger', request.query.ko);
 	}
 
-	collections.forEach( (collection) => {
-		if (collection.name == request.params.name) {
-			response.render('collectionDynamic', {
-				collection: collection,
-				fullDisplay: fullDisplay
-			});
-		}
-	});
+	const cIndex = collections.findIndex((collection) => collection.name === request.params.name);
+
+	if (cIndex === -1) {
+		response.status(404).render('404');
+	} else {
+		response.render('collectionDynamic', {
+			collection: collections[cIndex],
+			fullDisplay: fullDisplay,
+		});
+	}
 });
 
 // Display a collection with DataTable
 router.get('/showStatic/:name', ensureAuthenticated, (request, response) => {
-	collections.forEach( (collection) => {
-		if (collection.name == request.params.name) {
-			response.render('collectionStatic', {
-				collection: collection,
-				editMode: 0
-			});
-		}
-	});
+	const cIndex = collections.findIndex((collection) => collection.name === request.params.name);
+
+	if (cIndex === -1) {
+		response.status(404).render('404');
+	} else {
+		response.render('collectionStatic', {
+			collection: collections[cIndex],
+			editMode: 0,
+		});
+	}
 });
 
 // Display a collection in edit mode (ids are shown and clickable)
 router.get('/edit/:name', ensureAuthenticated, (request, response) => {
-	collections.forEach( (collection) => {
-		if (collection.name == request.params.name) {
-			response.render('collectionStatic', {
-				collection: collection,
-				editMode: 1
-			});
-		}
-	});
+	const cIndex = collections.findIndex((collection) => collection.name === request.params.name);
+
+	if (cIndex === -1) {
+		response.status(404).render('404');
+	} else {
+		response.render('collectionStatic', {
+			collection: collections[cIndex],
+			editMode: 1,
+		});
+	}
 });
 
 // Display form for modifying an item
@@ -167,57 +204,45 @@ router.get('/modify/:name/:id', ensureAuthenticated, (request, response) => {
 	const collectionName = request.params.name;
 	const itemId = request.params.id;
 
-	var specificItem = {};
-	collections.forEach( (collection) => {
-		if (collection.name == collectionName) {
-			collection.items.forEach ( (collItem) => {
-				if (collItem.id == itemId) {
-					specificItem = collItem;
-				}
-			});
+	const cIndex = collections.findIndex((collection) => collection.name === collectionName);
+	if (cIndex === -1) {
+		response.status(404).render('404');
+		return;
+	}
+	// eslint-disable-next-line max-len
+	const iIndex = collections[cIndex].items.findIndex((collItem) => collItem.id.toString() === itemId);
+	if (iIndex === -1) {
+		response.status(404).render('404');
+		return;
+	}
 
-			response.render('editItem', {
-				collection: collection,
-				item: specificItem
-			});
-		}
+	response.render('editItem', {
+		collection: collections[cIndex],
+		item: collections[cIndex].items[iIndex],
 	});
 });
 
 // POST routes
 
-// Delete a collection
-router.delete('/delete/:name', ensureAuthenticated, (request, response) => {
-    const collectionName = request.params.name;
-
-	var filteredCollections = collections.filter(collection => collection.name != collectionName);
-
-	collections = filteredCollections;
-	db.saveToDbFile();
-
-	response.sendStatus(200);
-});
-
 // Add a new collection, or change its properties
-// TODO : nettoyer et pousser sur github
+// TODO route trop grosse, factoriser
 // TODONICE : put pour modifier collection
 router.post('/writeCollection', [
-	check('name').isLength({min:1}).withMessage('Name required for the new collection'),
+	check('name').isLength({ min: 1 }).withMessage('Name required for the new collection'),
+	ensureAuthenticated,
 	], (request, response) => {
 	const collectionName = request.body.name;
+	// eslint-disable-next-line prefer-destructuring
 	const displayName = request.body.displayName;
 	const shortInputProperties = request.body.shortProperties;
 	const longInputProperties = request.body.longProperties;
-	const formAction = request.body._btn;   // Add or Modify
+	const formAction = request.body._btn; // Add or Modify
 
-	if (!request.isAuthenticated()) {
-		response.sendStatus(403);
-		return;
-	}
+	const cIndex = collections.findIndex((collection) => collection.name === collectionName);
 
-	var createMode = 0;
-	var title = 'Add new properties for '+collectionName;
-	if (formAction == 'Add') {
+	let createMode = 0;
+	let title = `Add new properties for ${collectionName}`;
+	if (formAction === 'Add') {
 		createMode = 1;
 		title = 'Insert new collection';
 	}
@@ -228,132 +253,125 @@ router.post('/writeCollection', [
 		response.render('collectionDetails', {
 			title: title,
 			createMode: createMode,
-			errors: errors.mapped()
+			errors: errors.mapped(),
 		});
 		return;
 	}
 
 	// Process properties
-	var shortPropertiesList = sanitizeProperties(shortInputProperties);
-	var longPropertiesList = sanitizeProperties(longInputProperties);
+	let shortPropertiesList = sanitizeProperties(shortInputProperties);
+	let longPropertiesList = sanitizeProperties(longInputProperties);
 
-	if (createMode && (!shortPropertiesList.find(elem => elem === MANDATORY_COLLECTION_PROPERTY))) {
+	if (createMode && (!shortPropertiesList.find((elem) => elem === MANDATORY_COLLECTION_PROPERTY))) {
 		response.render('collectionDetails', {
 			title: title,
 			createMode: createMode,
 			collectionName: collectionName,
 			mandatory: MANDATORY_COLLECTION_PROPERTY,
 			errors: {
-				secret: {
-					msg: 'You must declare at least one short property named "' + MANDATORY_COLLECTION_PROPERTY + '"'
-				}
-			}
+				details: {
+					msg: `You must declare at least one short property named "${MANDATORY_COLLECTION_PROPERTY}"`,
+				},
+			},
 		});
 		return;
 	}
-	else if ((shortPropertiesList[0] == 'ERR_Empty') && (longPropertiesList[0] == 'ERR_Empty')) {
+	if ((shortPropertiesList[0] === 'ERR_Empty') && (longPropertiesList[0] === 'ERR_Empty')) {
 		response.render('collectionDetails', {
 			title: title,
 			createMode: createMode,
 			collectionName: collectionName,
 			errors: {
-				secret: {
-					msg: 'You must declare at least one property'
-				}
-			}
+				details: {
+					msg: 'You must declare at least one property',
+				},
+			},
 		});
 		return;
 	}
-	else if ((shortPropertiesList[0] == 'ERR_InvalidChar') || (longPropertiesList[0] == 'ERR_InvalidChar')) {
+	if ((shortPropertiesList[0] === 'ERR_InvalidChar') || (longPropertiesList[0] === 'ERR_InvalidChar')) {
 		response.render('collectionDetails', {
 			title: title,
 			createMode: createMode,
 			collectionName: collectionName,
 			errors: {
-				secret: {
-					msg: 'Only letters and numbers are allowed for properties'
-				}
-			}
+				details: {
+					msg: 'Only letters and numbers are allowed for properties',
+				},
+			},
 		});
 		return;
 	}
-	else if ((shortPropertiesList[0] == 'ERR_DuplicatedItems') || (longPropertiesList[0] == 'ERR_DuplicatedItems')) {
+	if ((shortPropertiesList[0] === 'ERR_DuplicatedItems') || (longPropertiesList[0] === 'ERR_DuplicatedItems')) {
 		response.render('collectionDetails', {
 			title: title,
 			createMode: createMode,
 			collectionName: collectionName,
 			errors: {
-				secret: {
-					msg: 'Duplicate properties are not allowed'
-				}
-			}
+				details: {
+					msg: 'Duplicate properties are not allowed',
+				},
+			},
 		});
 		return;
 	}
 
 	// Check for duplicates
-	// Properties
 	if (createMode) {
-		// a bit easier to check as all properties are new
-		var duplicateProperties = findDuplicates(shortPropertiesList.concat(longPropertiesList));
+		// check for duplicated collection
+		if (cIndex !== -1) {
+			response.render('collectionDetails', {
+				title: title,
+				createMode: createMode,
+				collectionName: collectionName,
+				errors: {
+					details: {
+						msg: 'This collection already exists',
+					},
+				},
+			});
+			return;
+		}
+		// check for duplicated properties
+		const duplicateProperties = findDuplicates(shortPropertiesList.concat(longPropertiesList));
 		if (duplicateProperties.length > 0) {
 			response.render('collectionDetails', {
 				title: title,
 				createMode: createMode,
 				collectionName: collectionName,
 				errors: {
-					secret: {
-						msg: 'Duplicate properties are not allowed'
-					}
-				}
+					details: {
+						msg: 'Duplicate properties are not allowed',
+					},
+				},
 			});
 			return;
 		}
-	}
-	else {
+	} else {
+		// createMode is 0, attempt to modify existing collection
+		// Look for the collection, if it does not exist: 404
+		if (cIndex === -1) {
+			response.status(404).render('404');
+			return;
+		}
+
 		// concat new and existing properties to check for dublicates
 		// look for existing properties in the collection
-		var existingProperties = [];
-		collections.forEach( (collection) => {
-			if (collection.name == collectionName) {
-				existingProperties = collection.shortProperties.concat(collection.longProperties);
-			}
-		});
-		var newProperties = shortPropertiesList.concat(longPropertiesList);
-		var duplicateProperties = findDuplicates(existingProperties.concat(newProperties));
+		// eslint-disable-next-line max-len
+		const existingProperties = collections[cIndex].shortProperties.concat(collections[cIndex].longProperties);
+
+		const newProperties = shortPropertiesList.concat(longPropertiesList);
+		const duplicateProperties = findDuplicates(existingProperties.concat(newProperties));
 		if (duplicateProperties.length > 0) {
 			response.render('collectionDetails', {
 				title: title,
 				createMode: createMode,
 				collectionName: collectionName,
 				errors: {
-					secret: {
-						msg: 'Some new properties already exist, this is not allowed'
-					}
-				}
-			});
-			return;
-		}
-	}
-
-	// Collection (ne need to check if not in createMode)
-	if (createMode) {
-		var duplicateCollection = 0;
-		collections.forEach( (collection) => {
-			if (collection.name == collectionName) {
-				duplicateCollection = 1;
-			}
-		});
-		if (duplicateCollection == 1) {
-			response.render('collectionDetails', {
-				title: title,
-				createMode: createMode,
-				collectionName: collectionName,
-				errors: {
-					secret: {
-						msg: 'This collection already exists'
-					}
-				}
+					details: {
+						msg: 'Some new properties already exist, this is not allowed',
+					},
+				},
 			});
 			return;
 		}
@@ -362,11 +380,11 @@ router.post('/writeCollection', [
 	console.log('Validation checks are ok, API key is ok, authentication succeded');
 
 	// filter error messages in properties... a bit artificial TODO
-	shortPropertiesList = shortPropertiesList.filter(prop => !prop.match(/ERR_/));
-	longPropertiesList = longPropertiesList.filter(prop => !prop.match(/ERR_/));
+	shortPropertiesList = shortPropertiesList.filter((prop) => !prop.match(/ERR_/));
+	longPropertiesList = longPropertiesList.filter((prop) => !prop.match(/ERR_/));
 
 	if (createMode) {
-		var newCollection = {};
+		const newCollection = {};
 		newCollection.name = collectionName;
 		newCollection.displayName = displayName;
 		newCollection.shortProperties = shortPropertiesList;
@@ -375,207 +393,167 @@ router.post('/writeCollection', [
 		newCollection.lastitemid = 0;
 
 		collections.push(newCollection);
-	}
-	else {
-		collections.forEach( (collection) => {
-			if (collection.name == collectionName) {
-				collection.displayName = displayName;
-				collection.shortProperties = collection.shortProperties.concat(shortPropertiesList);
-				collection.longProperties = collection.longProperties.concat(longPropertiesList);
-				collection.items.forEach ( (collItem) => {
-					shortPropertiesList.forEach( (sp) => collItem[sp] = '');
-					longPropertiesList.forEach( (lp) => collItem[lp] = '');
-				});
-			}
-		});
+	} else {
+		// eslint-disable-next-line max-len
+		collections[cIndex].shortProperties = collections[cIndex].shortProperties.concat(shortPropertiesList);
+		// eslint-disable-next-line max-len
+		collections[cIndex].longProperties = collections[cIndex].longProperties.concat(longPropertiesList);
+
+		for (let i = 1; i <= collections[cIndex].lastitemid; i += 1) {
+			// eslint-disable-next-line max-len
+			const iIndex = collections[cIndex].items.findIndex((collItem) => collItem.id === i);
+			// eslint-disable-next-line no-loop-func
+			shortPropertiesList.forEach((sp) => {
+				if (collections[cIndex].items[iIndex]) {
+					collections[cIndex].items[iIndex][sp] = '';
+				}
+			});
+			// eslint-disable-next-line no-loop-func
+			longPropertiesList.forEach((lp) => {
+				if (collections[cIndex].items[iIndex]) {
+					collections[cIndex].items[iIndex][lp] = '';
+				}
+			});
+		}
 	}
 
 	db.saveToDbFile();
 
 	if (createMode) {
 		request.flash('success', 'Collection added');
-	}
-	else {
-		request.flash('success', 'New properties added to '+collectionName);
+	} else {
+		request.flash('success', `New properties added to ${collectionName}`);
 	}
 	response.render('index', {
-		collections: collections
+		collections: collections,
 	});
 });
 
 // Add a new item in a collection
 router.post('/add/:name', [
-	check('*').isLength({min:1}).withMessage('Value required'),
+	check('*').isLength({ min: 1 }).withMessage('Value required'),
+	ensureAuthenticated,
 	], (request, response) => {
-
-	if (!request.isAuthenticated()) {
-		response.sendStatus(403);
-		return;
-	}
-
 	const collectionName = request.params.name;
 
-	let thisCollection = {};
-	collections.forEach( (collection) => {
-		if (collection.name == collectionName) {
-			thisCollection = collection;
-		}
-	});
-
-	// collection not found
-	if (Object.keys(thisCollection).length === 0) {
-		response.status(404).send('Not found');
+	const cIndex = collections.findIndex((collection) => collection.name === collectionName);
+	if (cIndex === -1) {
+		response.status(404).render('404');
+		return;
 	}
-	// TODO test
 
 	const errors = validationResult(request);
 
 	if (!errors.isEmpty()) {
 		response.render('addItem', {
-			collection: thisCollection,
-			errors: errors.mapped()
+			collection: collections[cIndex],
+			errors: errors.mapped(),
 		});
-	}
-	else {
-		let newItem = {};
+	} else {
+		const newItem = {};
 
-		for (let [key, value] of Object.entries(request.body)) {
-			if (key != 'secret') {
-				newItem[key] = value;
-			}
+		// eslint-disable-next-line no-restricted-syntax
+		for (const [key, value] of Object.entries(request.body)) {
+			newItem[key] = value;
 		}
 
-		// look for the right collection
-		collections.forEach( (collection) => {
-			if (collection.name == collectionName) {
-				newItem.id = collection.lastitemid + 1;
-				collection.lastitemid += 1;
-				collection.items.push(newItem);		// TODO more verifications (API abuse)
-				db.saveToDbFile();
+		newItem.id = collections[cIndex].lastitemid + 1;
+		collections[cIndex].lastitemid += 1;
+		collections[cIndex].items.push(newItem); // TODO more verifications (API abuse)
 
-				request.flash('success', 'Item added');
-				response.render('collectionDynamic', {
-					collection: collection,
-					fullDisplay: 1
-				});
-			}
+		db.saveToDbFile();
+
+		request.flash('success', 'Item added');
+		response.render('collectionDynamic', {
+			collection: collections[cIndex],
+			fullDisplay: 1,
 		});
-	}  
+	}
 });
 
 // Modify an item in a collection
 router.post('/modify/:name/:id', [
-	check('*').isLength({min:1}).withMessage('Value required'),
+	check('*').isLength({ min: 1 }).withMessage('Value required'),
+	ensureAuthenticated,
 	], (request, response) => {
-
-	if (!request.isAuthenticated()) {
-		response.sendStatus(403);
-		return;
-	}
-
 	const collectionName = request.params.name;
 	const itemId = request.params.id;
-	const newItem = request.body;           //it includes the name of the button (_btn)
-    //const formAction = request.body._btn;   // Save or Delete
+	const newItem = request.body; // it includes the name of the button (_btn) TODO ?!
 
-	let thisCollection = {};
-	let thisItem = {};
+	/* let thisCollection = {};
+	let thisItem = {}; */
 
 	// prevent API abuse : check existence of collection and item
 	// TODO on peut mieux faire
-	collections.forEach( (collection) => {
-		if (collection.name == collectionName) {
-			thisCollection = collection;
-			collection.items.forEach ( (collItem) => {
-				if (collItem.id == itemId) {
-					thisItem = collItem;
-				}
-			});
-		}
-	});
-	if ((Object.keys(thisCollection).length === 0) || (Object.keys(thisItem).length === 0))  {
-		response.status(404).send('Not found');
+	// TODO test
+	const cIndex = collections.findIndex((collection) => collection.name === collectionName);
+	if (cIndex === -1) {
+		response.status(404).render('404');
+		return;
 	}
+	// thisCollection = collections[cIndex];
+	// eslint-disable-next-line max-len
+	const iIndex = collections[cIndex].items.findIndex((collItem) => collItem.id.toString() === itemId);
+	if (iIndex === -1) {
+		response.status(404).render('404');
+		return;
+	}
+	// thisItem = collections[cIndex].items[iIndex];
 
 	const errors = validationResult(request);
 
 	if (!errors.isEmpty()) {
 		response.render('editItem', {
-			collection: thisCollection,
-			item: thisItem,
-			errors: errors.mapped()
+			collection: collections[cIndex],
+			item: collections[cIndex].items[iIndex],
+			errors: errors.mapped(),
 		});
-	}
-	else {
-		// look for the specific item
-		collections.forEach( (collection) => {
-			if (collection.name == collectionName) {
-				collection.items.forEach ( (collItem) => {
-					if (collItem.id == itemId) {
-						// specific item found, loop through properties (expected for id)
-						for (prop in collItem) {
-							if (prop == "id") { continue; };	// do not touch the "id" property
-							collItem[prop] = newItem[prop];
-						}
-
-						db.saveToDbFile();
-						request.flash('success', 'Item modified');
-						response.render('collectionStatic', {
-							collection: collection
-						});
-					}
-				});
+	} else {
+		Object.keys(collections[cIndex].items[iIndex]).forEach((prop) => {
+			if (prop !== 'id') {
+				collections[cIndex].items[iIndex][prop] = newItem[prop];
 			}
+		});
+
+		db.saveToDbFile();
+		request.flash('success', 'Item modified');
+		response.render('collectionStatic', {
+			collection: collections[cIndex],
 		});
 	}
 });
 
+// DELETE routes
+// Delete a collection
+router.delete('/delete/:name', ensureAuthenticated, (request, response) => {
+    const collectionName = request.params.name;
+
+	// eslint-disable-next-line max-len
+	const filteredCollections = collections.filter((collection) => collection.name !== collectionName);
+
+	// eslint-disable-next-line no-global-assign
+	collections = filteredCollections;
+	db.saveToDbFile();
+
+	response.sendStatus(200);
+});
+
+// Delete item in a collection
 router.delete('/modify/:name/:id', ensureAuthenticated, (request, response) => {
 	const collectionName = request.params.name;
 	const itemId = request.params.id;
 
-	let thisCollection = {};
-	let thisItem = {};
-
-	// prevent API abuse : check existence of collection and item
-	// TODO on peut mieux faire
-	collections.forEach( (collection) => {
-		if (collection.name == collectionName) {
-			thisCollection = collection;
-			collection.items.forEach ( (collItem) => {
-				if (collItem.id == itemId) {
-					thisItem = collItem;
-				}
-			});
-		}
-	});
-	if ((Object.keys(thisCollection).length === 0) || (Object.keys(thisItem).length === 0))  {
-		response.status(404).send('Not found');
+	const cIndex = collections.findIndex((collection) => collection.name === collectionName);
+	if (cIndex === -1) {
+		response.status(404).render('404');
+		return;
 	}
 
-	// look for the specific item
-	collections.forEach( (collection) => {
-		if (collection.name == collectionName) {
-			// Delete
-			let filteredItems = collection.items.filter(item => item.id != itemId);
-			collection.items = filteredItems;
+	const filteredItems = collections[cIndex].items.filter((item) => item.id.toString() !== itemId);
+	collections[cIndex].items = filteredItems;
 
-			db.saveToDbFile();
-
-			response.sendStatus(200);
-		}
-	});
+	db.saveToDbFile();
+	response.sendStatus(200);
 });
-
-// Access controls
-function ensureAuthenticated(req, res, next){
-	if(req.isAuthenticated()){
-		return next();
-	}
-	else {
-		req.flash('danger', 'Please login');
-		res.redirect('/users/login');
-	}
-}
 
 module.exports = router;

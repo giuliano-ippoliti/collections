@@ -1,7 +1,9 @@
+/* eslint-disable linebreak-style */
 const LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcryptjs');
 
-module.exports = function(passport) {
+// TODO lint jquery, https://github.com/jquery/eslint-config-jquery
+module.exports = function (passport) {
   // Local Strategy
   passport.use(new LocalStrategy(function(username, password, done){
     // Match username

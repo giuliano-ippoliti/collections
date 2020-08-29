@@ -1,5 +1,9 @@
+/* eslint-disable linebreak-style */
+/* eslint-disable indent */
+/* eslint-disable no-tabs */
+/* eslint-disable no-console */
+/* global collections, registeredUsers */
 const fs = require('fs').promises;
-const path = require('path');
 
 // Db backend as JSON file
 const dbFile = 'collections.json';
@@ -9,58 +13,56 @@ const usersFile = 'users.json';
 const loadDbFile = async () => {
 	try {
 		// read db file for storage in items
-		var contents = await fs.readFile(dbFile);
+		const contents = await fs.readFile(dbFile);
 
 		console.log('Database file is ready to go!');
 
 		// load items to items array
+		// eslint-disable-next-line no-global-assign
 		collections = JSON.parse(contents);
-	}
-	catch (error) {
+	} catch (error) {
 		console.log(error);
 	}
-}
+};
 
 const saveToDbFile = async () => {
-	console.log('Saving to '+dbFile);
+	console.log(`Saving to ${dbFile}`);
 	// converting to JSON for storing in db file
-	var DbDump = JSON.stringify(collections, null, '  ');
+	const DbDump = JSON.stringify(collections, null, '  ');
 
 	try {
 		await fs.writeFile(dbFile, DbDump);
+	} catch (error) {
+		console.error(error);
 	}
-	catch (error) {
-		console.error(err);
-	}
-}
+};
 
 const loadUsersFile = async () => {
 	try {
 		// read db file for storage in items
-		var contents = await fs.readFile(usersFile);
+		const contents = await fs.readFile(usersFile);
 
 		console.log('Users file is ready to go!');
 
 		// load items to items array
+		// eslint-disable-next-line no-global-assign
 		registeredUsers = JSON.parse(contents);
-	}
-	catch (error) {
+	} catch (error) {
 		console.log(error);
 	}
-}
+};
 
 const saveToUsersFile = async () => {
-	console.log('Saving to '+usersFile);
+	console.log(`Saving to ${usersFile}`);
 	// converting to JSON for storing in db file
-	var usersDump = JSON.stringify(registeredUsers, null, '  ');
+	const usersDump = JSON.stringify(registeredUsers, null, '  ');
 
 	try {
 		await fs.writeFile(usersFile, usersDump);
+	} catch (error) {
+		console.error(error);
 	}
-	catch (error) {
-		console.error(err);
-	}
-}
+};
 
 module.exports.dbFile = dbFile;
 module.exports.loadDbFile = loadDbFile;
